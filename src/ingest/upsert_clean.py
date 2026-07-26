@@ -61,6 +61,19 @@ def main():
         except Exception as e:
             print(f"  FAIL {code}: {str(e)[:120]}", flush=True)
             continue
+        # ACCEPTANCE GUARDS (learned the hard way — an 8B "cleanup" once
+        # hallucinated words and altered digits): reject any cleanup that
+        # fails the verbatim-digit audit or does not clearly improve
+        # readability. Rejected docs keep their original genuine text.
+        old_q = by_code[code].get("quality", 0)
+        if not cleaned.get("digit_audit_ok"):
+            print(f"  REJECT {code}: digit audit failed (digits altered)", flush=True)
+            continue
+        if cleaned.get("readability_after", 0) < old_q + 0.05:
+            print(f"  REJECT {code}: readability {old_q:.3f} -> "
+                  f"{cleaned.get('readability_after', 0):.3f} (insufficient gain)",
+                  flush=True)
+            continue
         by_code[code] = cleaned
         # replace this GR's clauses in the index
         old_ids = [f"{code}:{i}" for i in range(120)]
