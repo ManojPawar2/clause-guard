@@ -77,17 +77,20 @@ def build(corpus_path=None, max_clauses_per_gr=60):
 def retrieve(query_text: str, k=5, exclude_gr=None):
     col = client().get_collection(COLLECTION)
     emb = model().encode([f"query: {query_text}"], normalize_embeddings=True)
-    res = col.query(query_embeddings=emb.tolist(), n_results=min(k + 5, 25))
-    out = []
+    res = col.query(query_embeddings=emb.tolist(), n_results=min(k * 4 + 5, 40))
+    out, seen_text = [], set()
     for i in range(len(res["ids"][0])):
         meta = res["metadatas"][0][i]
         if exclude_gr and meta["gr_code"] == exclude_gr:
             continue
-        out.append({
-            "clause": res["documents"][0][i],
-            "distance": res["distances"][0][i],
-            **meta,
-        })
+        doc = res["documents"][0][i]
+        # near-duplicate suppression: identical template clauses recur across
+        # dozens of GRs and would flood the top-k, crowding out real matches
+        key = " ".join(doc.split())[:120]
+        if key in seen_text:
+            continue
+        seen_text.add(key)
+        out.append({"clause": doc, "distance": res["distances"][0][i], **meta})
         if len(out) >= k:
             break
     return out

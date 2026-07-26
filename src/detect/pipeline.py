@@ -151,7 +151,7 @@ def explain_conflict(draft, existing, meta, reason):
     return llm_with_fallback(prompt, preferred="gemini", temperature=0.2, max_tokens=1024)
 
 
-def review_draft(draft_text: str, top_k=4, max_draft_clauses=25, progress=None):
+def review_draft(draft_text: str, top_k=6, max_draft_clauses=25, progress=None):
     """Full pipeline for the app. Returns dict with clauses, pairs, verdicts, conflicts."""
     clauses = chunk(draft_text)[:max_draft_clauses]
     pairs = []
