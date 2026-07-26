@@ -45,13 +45,7 @@ A CONFLICT means the two clauses cannot both be in force for the same beneficiar
 - different sanctioning authority or procedure for the same action
 - different coverage/scope (districts, categories, institution types) for the same scheme
 
-STRICT REQUIREMENTS — mark "conflict" ONLY if ALL of these hold:
-1. Both clauses concern the SAME scheme/benefit AND the same beneficiary group. Similar-sounding but distinct schemes (a different scholarship, a different hostel scheme, a different year's sanction) are NOT conflicts.
-2. The contradiction is explicit in the text of both clauses — do not infer unstated values.
-3. If the DRAFT introduces a NEW benefit/scheme that the existing clause simply does not cover, that is NOT a conflict.
-When uncertain whether the schemes are the same, label "neutral".
-
-NOT a conflict: paraphrase, one elaborating the other, different schemes/subjects entirely, one-time sanctions for different years/institutions, or clauses about unrelated matters (label these consistent or neutral).
+NOT a conflict: paraphrase, one elaborating the other, different schemes/subjects entirely, or clauses about unrelated matters (label these consistent or neutral).
 
 For each numbered pair below, output a JSON object: {{"results": [{{"pair": <n>, "label": "conflict"|"consistent"|"neutral", "reason": "<one sentence>"}}]}}
 Output ONLY the JSON.
@@ -67,17 +61,35 @@ SELF_EXCLUDED_REASON_RE = re.compile(
     re.IGNORECASE,
 )
 
-VERIFY_PROMPT = """Two clauses from Maharashtra Government Resolutions were flagged as possibly conflicting. Double-check STRICTLY.
+# Extraction beats judgment for small models: instead of asking "is this a
+# contradiction?", ask for each clause's value for the shared benefit and
+# compare the values in code.
+VERIFY_PROMPT = """Two clauses from Maharashtra Government Resolutions were flagged as possibly conflicting. Extract facts — do not judge.
 
 CLAUSE 1 (draft): {draft}
 
 CLAUSE 2 (existing): {existing}
 
-Answer two questions:
 1. same_scheme: Do BOTH clauses govern the SAME specific scheme/benefit for the SAME beneficiary group? (A different scholarship, a different stipend scheme, a different year's one-time sanction, or a merely similar topic = false.)
-2. explicit_contradiction: Do the clauses state incompatible values (amount/date/eligibility/authority/scope) such that both cannot be in force together? (One adding information the other omits = false.)
+2. benefit: In 3-8 words, what shared benefit/rule do they both address (empty string if none)?
+3. value1: What amount/percentage/date/authority/condition does CLAUSE 1 state or presuppose for that benefit? Quote it briefly (e.g. "50 टक्के", "Rs. 2,000", "31 March 2025"). Empty string if none.
+4. value2: Same for CLAUSE 2 (e.g. "100 टक्के"). A value counts even if presupposed ("students entitled to 100% reimbursement" -> "100 टक्के"). Empty string if none.
 
-Output ONLY JSON: {{"same_scheme": true|false, "explicit_contradiction": true|false}}"""
+Output ONLY JSON: {{"same_scheme": true|false, "benefit": "...", "value1": "...", "value2": "..."}}"""
+
+
+def _values_conflict(v1: str, v2: str) -> bool:
+    """Compare extracted values in code: different digit-content = conflict."""
+    d1 = re.findall(r"[0-9०-९]+(?:[.,][0-9०-९]+)?", v1 or "")
+    d2 = re.findall(r"[0-9०-९]+(?:[.,][0-9०-९]+)?", v2 or "")
+    tr = str.maketrans("०१२३४५६७८९", "0123456789")
+    n1 = {x.translate(tr).replace(",", "") for x in d1}
+    n2 = {x.translate(tr).replace(",", "") for x in d2}
+    if n1 and n2:
+        return n1 != n2
+    # non-numeric values (authority/procedure): require textual disagreement
+    a, b = (v1 or "").strip().lower(), (v2 or "").strip().lower()
+    return bool(a and b and a != b and a not in b and b not in a)
 
 EXPLAIN_PROMPT = """A draft Maharashtra Government Resolution contains a clause that conflicts with an existing GR. Explain the conflict precisely for a government drafting officer.
 
@@ -173,7 +185,8 @@ def review_draft(draft_text: str, top_k=4, max_draft_clauses=25, progress=None):
                 VERIFY_PROMPT.format(draft=p["draft"][:700], existing=p["candidate"][:700]),
                 temperature=0.0, max_tokens=256, json_mode=True)
             chk = json.loads(_json_slice(raw))
-            if not (chk.get("same_scheme") and chk.get("explicit_contradiction")):
+            if not (chk.get("same_scheme")
+                    and _values_conflict(chk.get("value1", ""), chk.get("value2", ""))):
                 v["label"] = "neutral"
                 continue
         except (LLMError, json.JSONDecodeError, ValueError):
