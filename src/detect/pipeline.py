@@ -167,34 +167,35 @@ def review_draft(draft_text: str, top_k=4, max_draft_clauses=25, progress=None):
                 continue
             pairs.append({"draft": cl, "draft_idx": ci,
                           "candidate": cand["clause"], "meta": cand})
-    if progress:
-        progress(f"screening {len(pairs)} candidate pairs with LLM (batched)")
-    verdicts = screen_pairs(pairs)
+    # One reliable stage instead of two flaky ones: extraction-verify EVERY pair.
+    # (Batched judgment screening proved unstable on the local 8B — verdicts
+    # flipped with batch composition. Fact extraction is stable; the conflict
+    # decision itself is made in code by comparing the extracted values.)
+    verdicts = []
     conflicts = []
-    for p, v in zip(pairs, verdicts):
-        if v["label"] != "conflict":
-            continue
-        if SELF_EXCLUDED_REASON_RE.search(v.get("reason", "")):
-            v["label"] = "neutral"  # screener applied an exclusion rule backwards
-            continue
-        # precision gate: verify same-scheme + explicit contradiction before accepting
+    for i, p in enumerate(pairs):
         if progress:
-            progress("verifying flagged conflict")
+            progress(f"extracting values for pair {i + 1}/{len(pairs)}")
+        v = {"label": "neutral", "reason": ""}
         try:
             raw = llm_with_fallback(
                 VERIFY_PROMPT.format(draft=p["draft"][:700], existing=p["candidate"][:700]),
-                temperature=0.0, max_tokens=256, json_mode=True)
+                temperature=0.0, max_tokens=512, json_mode=True)
             chk = json.loads(_json_slice(raw))
-            if not (chk.get("same_scheme")
-                    and _values_conflict(chk.get("value1", ""), chk.get("value2", ""))):
-                v["label"] = "neutral"
-                continue
-        except (LLMError, json.JSONDecodeError, ValueError):
-            pass  # verification unavailable -> keep the screen verdict
-        if progress:
-            progress("explaining flagged conflict")
-        expl = explain_conflict(p["draft"], p["candidate"], p["meta"], v["reason"])
-        conflicts.append({**p, "reason": v["reason"], "explanation": expl})
+            if chk.get("same_scheme") and _values_conflict(
+                    chk.get("value1", ""), chk.get("value2", "")):
+                v = {"label": "conflict",
+                     "reason": f"For {chk.get('benefit') or 'the same benefit'}, "
+                               f"the draft specifies '{chk.get('value1')}' but the "
+                               f"existing GR specifies '{chk.get('value2')}'."}
+        except (LLMError, json.JSONDecodeError, ValueError) as e:
+            v = {"label": "error", "reason": f"verification failed: {e}"}
+        verdicts.append(v)
+        if v["label"] == "conflict":
+            if progress:
+                progress("explaining flagged conflict")
+            expl = explain_conflict(p["draft"], p["candidate"], p["meta"], v["reason"])
+            conflicts.append({**p, "reason": v["reason"], "explanation": expl})
     return {"n_clauses": len(clauses), "clauses": clauses, "n_pairs": len(pairs),
             "verdicts": verdicts, "pairs": pairs, "conflicts": conflicts}
 
