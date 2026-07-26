@@ -22,6 +22,20 @@ from chunk_clauses import chunk  # noqa: E402
 # clauses measure <=0.16, off-topic >=0.18 (calibrated live). 0.18 is the cut.
 MAX_COSINE_DISTANCE = 0.18
 
+# Boilerplate present in every GR (availability line, signature formula,
+# distribution list, digital-signature note). These retrieve each other across
+# unrelated GRs and produce junk "conflicts" — never screen them.
+BOILERPLATE_RE = re.compile(
+    r"maharashtra\.gov\.in|सांके\s*तांक|संके\s*तस्थळ|digitally sign|साक्षां\s*कित"
+    r"|by order and in the name|राज्यपालांच्या आदेशानुसार"
+    r"|^\s*(?:प्रत|प्रति|copy to)\s*[:,\-]|unique code",
+    re.IGNORECASE,
+)
+
+
+def is_boilerplate(clause: str) -> bool:
+    return bool(BOILERPLATE_RE.search(clause))
+
 SCREEN_PROMPT = """You are screening clauses of a DRAFT Maharashtra Government Resolution (GR) against clauses from EXISTING GRs for conflicts.
 
 A CONFLICT means the two clauses cannot both be in force for the same beneficiaries/institutions, specifically:
@@ -109,10 +123,14 @@ def review_draft(draft_text: str, top_k=4, max_draft_clauses=25, progress=None):
     clauses = chunk(draft_text)[:max_draft_clauses]
     pairs = []
     for ci, cl in enumerate(clauses):
+        if is_boilerplate(cl):
+            continue
         if progress:
             progress(f"retrieving candidates for clause {ci + 1}/{len(clauses)}")
         for cand in retrieve(cl, k=top_k):
             if cand["distance"] > MAX_COSINE_DISTANCE:
+                continue
+            if is_boilerplate(cand["clause"]):
                 continue
             pairs.append({"draft": cl, "draft_idx": ci,
                           "candidate": cand["clause"], "meta": cand})
