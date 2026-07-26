@@ -5,10 +5,15 @@
 
 | System | Macro-F1 | Contradiction F1 | Consistent F1 | Neutral F1 | Latency / pair | Throughput | Marginal cost |
 |---|---|---|---|---|---|---|---|
-| Fine-tuned MuRIL-base (local CPU) | _TBD_ | _TBD_ | _TBD_ | _TBD_ | _TBD_ ms | _TBD_ pairs/s | $0, no rate limit |
-| Zero-shot Groq Llama-3.3-70B (few-shot JSON) | _TBD_ | _TBD_ | _TBD_ | _TBD_ | ~0.5–1.5 s RTT | rate-limited | free tier |
-| Zero-shot Gemini Flash (few-shot JSON) | _TBD_ | _TBD_ | _TBD_ | _TBD_ | ~1–3 s RTT | 10 RPM | free tier |
-| TF-IDF + LogReg baseline (lexical-artifact probe) | _TBD_ | — | — | — | <1 ms | — | $0 |
+| **Fine-tuned MuRIL-base, 238M (local CPU)** | **0.9134** | 0.906 | 0.863 | 0.971 | **130 ms** | 7.7 pairs/s | $0, no rate limit |
+| Zero-shot Groq Llama-3.3-70B (few-shot JSON) | _running_ | _running_ | _running_ | _running_ | ~1.5 s RTT + rate-limit waits | ~0.3 pairs/s effective (free tier) | free tier |
+| Zero-shot Gemini Flash (few-shot JSON) | _after quota reset_ | — | — | — | ~1–3 s RTT | 10 RPM | free tier |
+| Zero-shot local Llama-3.1-8B (Ollama, RTX 2050) | _queued_ | — | — | — | ~15–30 s | — | $0 |
+| TF-IDF + LogReg baseline (lexical-artifact probe) | 0.788 | — | — | — | <1 ms | — | $0 |
+
+Notes: fine-tuned local F1 independently reproduced on-device (0.9134, `results/metrics_local_cpu.json`) —
+identical to the Colab test run. The TF-IDF row is the lexical-shortcut ceiling: any system below ~0.79
+may be pattern-matching words; the fine-tuned model's +0.13 margin over it is the semantic-learning evidence.
 
 ## Contamination guardrails
 - **Per-generator breakdown**: each zero-shot judge's macro-F1 is also reported split by
