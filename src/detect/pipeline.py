@@ -31,7 +31,13 @@ A CONFLICT means the two clauses cannot both be in force for the same beneficiar
 - different sanctioning authority or procedure for the same action
 - different coverage/scope (districts, categories, institution types) for the same scheme
 
-NOT a conflict: paraphrase, one elaborating the other, different schemes/subjects entirely, or clauses about unrelated matters (label these consistent or neutral).
+STRICT REQUIREMENTS — mark "conflict" ONLY if ALL of these hold:
+1. Both clauses concern the SAME scheme/benefit AND the same beneficiary group. Similar-sounding but distinct schemes (a different scholarship, a different hostel scheme, a different year's sanction) are NOT conflicts.
+2. The contradiction is explicit in the text of both clauses — do not infer unstated values.
+3. If the DRAFT introduces a NEW benefit/scheme that the existing clause simply does not cover, that is NOT a conflict.
+When uncertain whether the schemes are the same, label "neutral".
+
+NOT a conflict: paraphrase, one elaborating the other, different schemes/subjects entirely, one-time sanctions for different years/institutions, or clauses about unrelated matters (label these consistent or neutral).
 
 For each numbered pair below, output a JSON object: {{"results": [{{"pair": <n>, "label": "conflict"|"consistent"|"neutral", "reason": "<one sentence>"}}]}}
 Output ONLY the JSON.

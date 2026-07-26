@@ -1,1 +1,3 @@
 2515 seed clauses, 2 already generated
+202407251702389021:12: +9 (total 29)
+202403111723431321:9: +11 (total 40)
