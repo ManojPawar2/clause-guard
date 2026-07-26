@@ -45,11 +45,22 @@ def judge(provider, pairs, batch=5, sleep=4.0):
             f"PAIR {i}\nA) {p['premise'][:600]}\nB) {p['hypothesis'][:600]}\n"
             for i, p in enumerate(chunk_, 1)
         )
+        prompt = JUDGE_PROMPT.format(pairs=listing)
         try:
-            raw = llm(JUDGE_PROMPT.format(pairs=listing), provider=provider,
-                      temperature=0.0, max_tokens=1024, json_mode=True)
-            m = re.search(r"\{.*\}", raw, re.DOTALL)
-            for item in json.loads(m.group(0) if m else raw).get("results", []):
+            data = None
+            for attempt in (1, 2):
+                # attempt 2 bypasses AND overwrites the cache — a malformed
+                # response must never be replayed from disk
+                raw = llm(prompt, provider=provider, temperature=0.0,
+                          max_tokens=1024, json_mode=True, use_cache=(attempt == 1))
+                m = re.search(r"\{.*\}", raw, re.DOTALL)
+                try:
+                    data = json.loads(m.group(0) if m else raw)
+                    break
+                except (json.JSONDecodeError, ValueError):
+                    if attempt == 2:
+                        raise
+            for item in data.get("results", []):
                 idx = s + int(item.get("pair", 0)) - 1
                 lab = str(item.get("label", "")).lower()
                 if 0 <= idx < len(pairs) and lab in ("contradiction", "consistent", "neutral"):

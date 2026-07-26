@@ -1,3 +1,16 @@
 === zero-shot gemini on 563 pairs (sleep 6.5s)
   batch 0: Expecting value: line 2 column 13 (char 14)
 [gemini] 5/563
+  batch 5: Expecting value: line 2 column 13 (char 14)
+  batch 10: Expecting value: line 2 column 13 (char 14)
+  batch 15: Expecting value: line 2 column 13 (char 14)
+  batch 20: Expecting value: line 1 column 12 (char 11)
+  batch 25: Extra data: line 1 column 3 (char 2)
+  batch 30: Expecting value: line 2 column 13 (char 14)
+  batch 35: Expecting value: line 2 column 13 (char 14)
+  batch 40: Expecting value: line 1 column 12 (char 11)
+  batch 45: Expecting value: line 2 column 13 (char 14)
+  batch 50: Expecting value: line 1 column 13 (char 12)
+[gemini] 55/563
+  batch 55: Expecting value: line 2 column 13 (char 14)
+  batch 60: Expecting value: line 1 column 12 (char 11)
