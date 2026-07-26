@@ -198,16 +198,25 @@ def main():
     rng = random.Random(42)
     recs = [json.loads(l) for l in
             (ROOT / "data" / "corpus.jsonl").read_text(encoding="utf-8").splitlines()]
+    # Amendment candidates go to a SEPARATE review file, not training data:
+    # on garbled text too many are structural look-alikes (citation-list items,
+    # repeated template paragraphs) rather than true value revisions. They are
+    # excellent Scenario-B/demo material after human review, though.
     amendments = mine_amendments(recs)
-    print(f"mined amendment contradictions: {len(amendments)}", flush=True)
+    cand = ROOT / "data" / "pairs_amendment_candidates.jsonl"
+    with cand.open("w", encoding="utf-8") as f:
+        for rec in amendments:
+            f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+    print(f"amendment candidates (review file, NOT training): {len(amendments)} -> {cand}",
+          flush=True)
     swaps = augment_numswap(recs, rng)
     print(f"number-swap contradictions: {len(swaps)}", flush=True)
     neutrals = mine_neutrals(recs, rng)
     print(f"mined neutrals: {len(neutrals)}", flush=True)
     with OUT.open("w", encoding="utf-8") as f:
-        for rec in amendments + swaps + neutrals:
+        for rec in swaps + neutrals:
             f.write(json.dumps(rec, ensure_ascii=False) + "\n")
-    print(f"wrote {len(amendments) + len(swaps) + len(neutrals)} records -> {OUT}", flush=True)
+    print(f"wrote {len(swaps) + len(neutrals)} training records -> {OUT}", flush=True)
 
 
 if __name__ == "__main__":
