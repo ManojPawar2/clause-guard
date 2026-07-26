@@ -29,15 +29,20 @@ st.markdown(
 )
 
 
-@st.cache_data
-def load_corpus_cached():
+def _corpus_file():
     # prefer the LLM-cleaned corpus when it exists
     for name in ("corpus_clean.jsonl", "corpus.jsonl"):
         p = ROOT / "data" / name
         if p.exists():
-            return [json.loads(l) for l in p.read_text(encoding="utf-8").splitlines()
-                    if l.strip()]
-    return []
+            return p
+    return None
+
+
+@st.cache_data
+def load_corpus_cached(path_str, mtime):
+    # mtime participates in the cache key so a rebuilt corpus refreshes the app
+    return [json.loads(l) for l in Path(path_str).read_text(encoding="utf-8").splitlines()
+            if l.strip()]
 
 
 @st.cache_data
@@ -45,7 +50,8 @@ def load_glossary():
     return json.loads((ROOT / "data" / "glossary.json").read_text(encoding="utf-8"))
 
 
-corpus = load_corpus_cached()
+_cf = _corpus_file()
+corpus = load_corpus_cached(str(_cf), _cf.stat().st_mtime) if _cf else []
 
 # ---------- sidebar ----------
 with st.sidebar:
@@ -90,7 +96,8 @@ if run and draft.strip():
 
     # Conflicts (needs index + LLM keys)
     try:
-        from pipeline import review_draft
+        with st.spinner("Loading retrieval model (first run takes ~30 s)…"):
+            from pipeline import review_draft
         prog = st.progress(0.0, text="analysing…")
         msgs = {"n": 0}
 

@@ -19,10 +19,6 @@ ROOT = Path(__file__).resolve().parents[2]
 CACHE_DIR = ROOT / "cache" / "llm"
 CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
-GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
-GROQ_MODEL = os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile")
-
-
 def _load_env():
     """Minimal .env loader (no python-dotenv dependency)."""
     env = ROOT / ".env"
@@ -34,7 +30,10 @@ def _load_env():
                 os.environ.setdefault(k.strip(), v.strip().strip('"').strip("'"))
 
 
-_load_env()
+_load_env()  # must run BEFORE the model constants read os.environ
+
+GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
+GROQ_MODEL = os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile")
 
 
 class LLMError(RuntimeError):

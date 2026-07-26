@@ -53,10 +53,13 @@ def analyze_references(draft_text: str, corpus: list) -> dict:
     for ref in cites["cited_refs"]:
         n = _norm_ref(ref)
         hit = None
-        for k, r in by_grno.items():
-            if k and (k in n or n in k):
-                hit = r
-                break
+        # degenerate normals ('' or bare years like '2024') would substring-match
+        # arbitrary GRs — require substance on BOTH sides before fuzzy matching
+        if len(n) >= 6:
+            for k, r in by_grno.items():
+                if len(k) >= 6 and (k in n or n in k):
+                    hit = r
+                    break
         if hit:
             linked.append({"cited": ref, "match": hit, "via": "gr-number"})
         else:

@@ -41,3 +41,9 @@ listing: 18734 usable rows
 === dept 21: 356 targets
 [bulk-21] 25/356 ok=25 skip=0 miss=0 (58s, 0.4/s, eta 13m)
   MISS 202408051444252521: failed
+[bulk-21] 50/356 ok=49 skip=0 miss=1 (113s, 0.4/s, eta 12m)
+[bulk-21] 75/356 ok=74 skip=0 miss=1 (150s, 0.5/s, eta 9m)
+[bulk-21] 100/356 ok=99 skip=0 miss=1 (184s, 0.5/s, eta 8m)
+[bulk-21] 125/356 ok=124 skip=0 miss=1 (226s, 0.6/s, eta 7m)
+[bulk-21] 150/356 ok=149 skip=0 miss=1 (262s, 0.6/s, eta 6m)
+[bulk-21] 175/356 ok=174 skip=0 miss=1 (302s, 0.6/s, eta 5m)

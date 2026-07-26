@@ -18,6 +18,10 @@ from clients import llm, llm_with_fallback, LLMError  # noqa: E402
 from build_index import retrieve  # noqa: E402
 from chunk_clauses import chunk  # noqa: E402
 
+# e5-small cosine distances compress to ~[0.10, 0.25] on this index: related
+# clauses measure <=0.16, off-topic >=0.18 (calibrated live). 0.18 is the cut.
+MAX_COSINE_DISTANCE = 0.18
+
 SCREEN_PROMPT = """You are screening clauses of a DRAFT Maharashtra Government Resolution (GR) against clauses from EXISTING GRs for conflicts.
 
 A CONFLICT means the two clauses cannot both be in force for the same beneficiaries/institutions, specifically:
@@ -65,7 +69,7 @@ def screen_pairs(pairs, batch_size=5, provider="groq"):
             data = json.loads(_json_slice(raw))
             for item in data.get("results", []):
                 idx = s + int(item.get("pair", 0)) - 1
-                if 0 <= idx < len(pairs):
+                if s <= idx < s + len(batch):  # in-batch only; stray ids dropped
                     lab = str(item.get("label", "neutral")).lower()
                     if lab not in ("conflict", "consistent", "neutral"):
                         lab = "neutral"
@@ -86,8 +90,9 @@ def _json_slice(text):
 
 
 def explain_conflict(draft, existing, meta, reason):
-    label = f"{meta.get('department','?')} GR {meta.get('gr_number') or meta.get('gr_code','?')}" \
-            f" dated {meta.get('date','?')}"
+    gn = meta.get("gr_number")
+    gr_id = gn if gn and gn != "?" else meta.get("gr_code", "?")
+    label = f"{meta.get('department','?')} GR {gr_id} dated {meta.get('date','?')}"
     prompt = EXPLAIN_PROMPT.format(draft=draft[:900], existing=existing[:900],
                                    gr_label=label, reason=reason)
     return llm_with_fallback(prompt, preferred="gemini", temperature=0.2, max_tokens=1024)
@@ -101,7 +106,7 @@ def review_draft(draft_text: str, top_k=4, max_draft_clauses=25, progress=None):
         if progress:
             progress(f"retrieving candidates for clause {ci + 1}/{len(clauses)}")
         for cand in retrieve(cl, k=top_k):
-            if cand["distance"] > 0.45:  # cosine distance; skip weakly-related
+            if cand["distance"] > MAX_COSINE_DISTANCE:
                 continue
             pairs.append({"draft": cl, "draft_idx": ci,
                           "candidate": cand["clause"], "meta": cand})
