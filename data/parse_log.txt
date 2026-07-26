@@ -1,0 +1,1 @@
+corpus: ok=776 thin/scanned=0 low-quality=209 fail=0 -> C:\Users\samay\projects\maha-gr-align\data\corpus.jsonl

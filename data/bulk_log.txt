@@ -49,3 +49,10 @@ listing: 18734 usable rows
 [bulk-21] 175/356 ok=174 skip=0 miss=1 (302s, 0.6/s, eta 5m)
 [bulk-21] 200/356 ok=199 skip=0 miss=1 (333s, 0.6/s, eta 4m)
 [bulk-21] 225/356 ok=224 skip=0 miss=1 (367s, 0.6/s, eta 4m)
+[bulk-21] 250/356 ok=249 skip=0 miss=1 (408s, 0.6/s, eta 3m)
+[bulk-21] 275/356 ok=274 skip=0 miss=1 (439s, 0.6/s, eta 2m)
+[bulk-21] 300/356 ok=299 skip=0 miss=1 (467s, 0.6/s, eta 1m)
+[bulk-21] 325/356 ok=324 skip=0 miss=1 (503s, 0.6/s, eta 1m)
+[bulk-21] 350/356 ok=349 skip=0 miss=1 (539s, 0.6/s, eta 0m)
+[bulk-21] DONE ok=355 skip=0 miss=1
+ALL DONE
