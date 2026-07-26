@@ -1,0 +1,9 @@
+requests
+beautifulsoup4
+pdfplumber
+PyMuPDF
+chromadb
+sentence-transformers
+streamlit
+pyyaml
+pyvis

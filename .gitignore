@@ -1,0 +1,8 @@
+.env
+data/raw_pdfs/
+chroma_db/
+cache/llm/
+__pycache__/
+*.pyc
+model/
+*.zip

@@ -1,0 +1,48 @@
+# Template-compliance checks for a draft GR, per Maharashtra Manual of Office
+# Procedure conventions. Each rule: id, description, regex (searched in the
+# draft, case-insensitive; ^ matches line starts), weight.
+rules:
+  - id: govt_line
+    desc: "Header contains 'Government of Maharashtra'"
+    regex: "Government\\s+of\\s+Maharashtra|महाराष्ट्र\\s*शासन"
+    weight: 1
+  - id: dept_line
+    desc: "Issuing department line present (... Department)"
+    regex: "[A-Z][A-Za-z,&' ]+Department|विभाग"
+    weight: 1
+  - id: gr_number
+    desc: "GR number present (Government Resolution No. ...)"
+    regex: "(Government\\s+(Resolution|Circular)|Corrigendum)\\s*No\\.?\\s*[:\\-]?"
+    weight: 2
+  - id: date_line
+    desc: "Date line present and parseable"
+    regex: "Date[d]?\\s*[:\\-. ]*\\s*\\d{1,2}"
+    weight: 2
+  - id: mantralaya
+    desc: "Place of issue present (Mantralaya, Mumbai)"
+    regex: "Mantralaya|मंत्रालय"
+    weight: 1
+  - id: read_block
+    desc: "'Read' / reference block present (vaacha)"
+    regex: "^\\s*(Read|Reference)\\s*[:\\-]|वाचा"
+    weight: 2
+  - id: preamble
+    desc: "Preamble section present (prastavana)"
+    regex: "Preamble|प्रस्तावना"
+    weight: 1
+  - id: resolution_block
+    desc: "Operative 'Government Resolution' section present"
+    regex: "Government\\s+Resolution\\s*[:\\-]|शासन\\s*निर्णय"
+    weight: 2
+  - id: numbered_clauses
+    desc: "Operative part uses numbered clauses (1. 2. ...)"
+    regex: "^\\s*\\(?[12][.)]\\s+\\S"
+    weight: 1
+  - id: signature_block
+    desc: "Signature block present (By order and in the name of the Governor ...)"
+    regex: "By\\s+order\\s+and\\s+in\\s+the\\s+name\\s+of\\s+the\\s+Governor|राज्यपाल"
+    weight: 2
+  - id: unique_code
+    desc: "Computer/unique GR code present (18-digit)"
+    regex: "\\b20\\d{16}\\b"
+    weight: 1
