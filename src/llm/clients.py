@@ -106,6 +106,10 @@ def _gemini(prompt, temperature, max_tokens, json_mode):
     gc = {"temperature": temperature, "maxOutputTokens": max_tokens}
     if json_mode:
         gc["responseMimeType"] = "application/json"
+        # Gemini 3 spends output budget on internal thinking; on hard inputs it
+        # can exhaust max_tokens before emitting any text. Structured-output
+        # calls don't benefit from thinking — turn it off.
+        gc["thinkingConfig"] = {"thinkingBudget": 0}
     data = _post_with_retry(url, {"Content-Type": "application/json"},
                             {"contents": [{"parts": [{"text": prompt}]}],
                              "generationConfig": gc})

@@ -52,7 +52,7 @@ def judge(provider, pairs, batch=5, sleep=4.0):
                 # attempt 2 bypasses AND overwrites the cache — a malformed
                 # response must never be replayed from disk
                 raw = llm(prompt, provider=provider, temperature=0.0,
-                          max_tokens=1024, json_mode=True, use_cache=(attempt == 1))
+                          max_tokens=2048, json_mode=True, use_cache=(attempt == 1))
                 m = re.search(r"\{.*\}", raw, re.DOTALL)
                 try:
                     data = json.loads(m.group(0) if m else raw)
@@ -100,9 +100,9 @@ def main():
     if os.environ.get("LLM_MODE", "").lower() == "ollama":
         providers = [("ollama", "ollama-local", 1.0)]  # routed to ollama
     else:
-        # Gemini first (steady 10 RPM); Groq second with slow pacing — its free
-        # 70B TPM budget chokes on our batch size and triggers deep backoffs.
-        providers = [("gemini", "gemini", 6.5), ("groq", "groq", 16.0)]
+        pacing = {"gemini": 6.5, "groq": 16.0}  # tuned to each free tier
+        wanted = os.environ.get("EVAL_PROVIDERS", "gemini,groq").split(",")
+        providers = [(p, p, pacing[p]) for p in wanted if p in pacing]
     for provider, label, sleep_s in providers:
         print(f"=== zero-shot {label} on {len(rows)} pairs (sleep {sleep_s}s)", flush=True)
         preds = judge(provider, rows, sleep=sleep_s)

@@ -1,0 +1,8 @@
+=== zero-shot gemini on 563 pairs (sleep 6.5s)
+  batch 0: Expecting value: line 1 column 1 (char 0)
+[gemini] 5/563
+  batch 5: Expecting value: line 2 column 13 (char 14)
+  batch 10: HTTP 429: {
+  "error": {
+    "code": 429,
+    "message": "You exceeded your current quota, please ch
