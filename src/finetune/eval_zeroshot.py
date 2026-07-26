@@ -83,15 +83,20 @@ def metrics(rows, preds):
 
 
 def main():
+    import os
     rows = [json.loads(l) for l in TEST.read_text(encoding="utf-8").splitlines()]
     RESULTS.mkdir(exist_ok=True)
-    for provider in ("groq", "gemini"):
-        print(f"=== zero-shot {provider} on {len(rows)} pairs", flush=True)
+    if os.environ.get("LLM_MODE", "").lower() == "ollama":
+        providers = [("ollama", "ollama-local")]  # routed to ollama; honest filename
+    else:
+        providers = [("groq", "groq"), ("gemini", "gemini")]
+    for provider, label in providers:
+        print(f"=== zero-shot {label} on {len(rows)} pairs", flush=True)
         preds = judge(provider, rows)
         m = metrics(rows, preds)
-        p = RESULTS / f"metrics_zeroshot_{provider}.json"
+        p = RESULTS / f"metrics_zeroshot_{label}.json"
         p.write_text(json.dumps(m, indent=2), encoding="utf-8")
-        print(f"{provider}: macro-F1={m['macro_f1']} (judged {m['n_judged']}/{m['n_total']}) "
+        print(f"{label}: macro-F1={m['macro_f1']} (judged {m['n_judged']}/{m['n_total']}) "
               f"by-gen={m['by_generator_macro_f1']} -> {p}", flush=True)
 
 

@@ -1,0 +1,17 @@
+{
+  "macro_f1": 0.9133684906711222,
+  "accuracy": 0.9129662522202486,
+  "report": {
+    "contradiction": {"precision": 0.8903508771929824, "recall": 0.9227272727272727, "f1-score": 0.90625, "support": 220.0},
+    "consistent": {"precision": 0.8895705521472392, "recall": 0.838150289017341, "f1-score": 0.8630952380952381, "support": 173.0},
+    "neutral": {"precision": 0.9651162790697675, "recall": 0.9764705882352941, "f1-score": 0.9707602339181286, "support": 170.0},
+    "accuracy": 0.9129662522202486,
+    "macro avg": {"precision": 0.9150125694699964, "recall": 0.9124493833266359, "f1-score": 0.9133684906711222, "support": 563.0},
+    "weighted avg": {"precision": 0.9126867956408331, "recall": 0.9129662522202486, "f1-score": 0.9124684120009912, "support": 563.0}
+  },
+  "seed": 42,
+  "model": "google/muril-base-cased",
+  "dataset": "4,490 pairs (3,633/294/563 grouped split), generators: ollama:llama3.1 + augment-numswap + mined-neutral + augment-truncation + mined-neutral-hard",
+  "trained_on": "Google Colab T4, 5 epochs, fp16, 2026-07-27",
+  "versions": {"transformers": "4.57.6", "sklearn": "1.6.1"}
+}
