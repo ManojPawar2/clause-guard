@@ -23,6 +23,13 @@ REF_RE = re.compile(
     r"(?:,?\s*(?:dated|dt\.?)\s*[^\n,;)]{4,30})?)",
     re.IGNORECASE,
 )
+# Marathi form: "शासन निर्णय क्र.शिष्यवृ-2024/प्र.क्र.105/तासशि-4, दि.08.07.2024"
+# (क्रमांक/क्र + a slash-separated file number, optional दि./दिनांक date tail)
+REF_MR_RE = re.compile(
+    r"((?:शासन\s*(?:निर्णय|परिपत्रक)|परिपत्रक|निर्णय)\s*"
+    r"(?:क्रमांक|क्र)\.?\s*[:\-ः]?\s*[^\s,][^\n,]{4,70}"
+    r"(?:,?\s*(?:दि|दिनांक)\.?\s*[^\n,;)]{4,25})?)"
+)
 
 
 def parse_header(text: str) -> dict:
@@ -62,8 +69,9 @@ def parse_header(text: str) -> dict:
 def extract_citations(text: str) -> dict:
     codes = sorted(set(UNIQUE_CODE_RE.findall(text)))
     refs = []
-    for m in REF_RE.finditer(text):
-        r = re.sub(r"\s+", " ", m.group(1)).strip().rstrip(",.")
-        if len(r) > 15 and r not in refs:
-            refs.append(r)
+    for rx in (REF_RE, REF_MR_RE):
+        for m in rx.finditer(text):
+            r = re.sub(r"\s+", " ", m.group(1)).strip().rstrip(",.")
+            if len(r) > 15 and r not in refs:
+                refs.append(r)
     return {"cited_codes": codes, "cited_refs": refs[:40]}
