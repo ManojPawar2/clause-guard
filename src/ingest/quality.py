@@ -33,6 +33,21 @@ COMMON = set("""
 
 DEV_WORD = re.compile(r"[ऀ-ॿ]{2,}")
 
+# Boilerplate present in every GR (availability line, signature formula,
+# distribution list, digital-signature note). Shared by the conflict pipeline
+# and the pair miners — these clauses must never become training pairs or
+# conflict candidates.
+BOILERPLATE_RE = re.compile(
+    r"maharashtra\.gov\.in|सांके\s*तांक|संके\s*तस्थळ|सकं\s*े\s*ता|digitally sign"
+    r"|साक्षां\s*कित|स्वाक्षरीने|by order and in the name|राज्यपालांच्या आदेशानुसार"
+    r"|^\s*(?:प्रत|प्रति|copy to)\s*[:,\-]|unique code",
+    re.IGNORECASE,
+)
+
+
+def is_boilerplate(clause: str) -> bool:
+    return bool(BOILERPLATE_RE.search(clause))
+
 
 def readability(text: str, min_words: int = 30) -> dict:
     words = DEV_WORD.findall(text)

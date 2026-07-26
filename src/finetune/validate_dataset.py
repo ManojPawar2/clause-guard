@@ -12,7 +12,7 @@ from collections import Counter
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-RAW = ROOT / "data" / "pairs_raw.jsonl"
+RAW_FILES = [ROOT / "data" / "pairs_raw.jsonl", ROOT / "data" / "pairs_mined.jsonl"]
 CLEAN = ROOT / "data" / "pairs_clean.jsonl"
 THRESH = 0.75
 
@@ -24,7 +24,11 @@ def jaccard(a, b):
 
 def main():
     rows = []
-    for line in RAW.read_text(encoding="utf-8").splitlines():
+    lines = []
+    for f in RAW_FILES:
+        if f.exists():
+            lines += f.read_text(encoding="utf-8").splitlines()
+    for line in lines:
         try:
             rec = json.loads(line)
         except json.JSONDecodeError:

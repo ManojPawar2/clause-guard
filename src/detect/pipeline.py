@@ -22,19 +22,8 @@ from chunk_clauses import chunk  # noqa: E402
 # clauses measure <=0.16, off-topic >=0.18 (calibrated live). 0.18 is the cut.
 MAX_COSINE_DISTANCE = 0.18
 
-# Boilerplate present in every GR (availability line, signature formula,
-# distribution list, digital-signature note). These retrieve each other across
-# unrelated GRs and produce junk "conflicts" — never screen them.
-BOILERPLATE_RE = re.compile(
-    r"maharashtra\.gov\.in|सांके\s*तांक|संके\s*तस्थळ|digitally sign|साक्षां\s*कित"
-    r"|by order and in the name|राज्यपालांच्या आदेशानुसार"
-    r"|^\s*(?:प्रत|प्रति|copy to)\s*[:,\-]|unique code",
-    re.IGNORECASE,
-)
-
-
-def is_boilerplate(clause: str) -> bool:
-    return bool(BOILERPLATE_RE.search(clause))
+# Boilerplate detection is shared with the pair miners — lives in quality.py.
+from quality import is_boilerplate  # noqa: E402
 
 SCREEN_PROMPT = """You are screening clauses of a DRAFT Maharashtra Government Resolution (GR) against clauses from EXISTING GRs for conflicts.
 
