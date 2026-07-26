@@ -1,0 +1,3 @@
+=== zero-shot gemini on 563 pairs (sleep 6.5s)
+  batch 0: Expecting value: line 2 column 13 (char 14)
+[gemini] 5/563

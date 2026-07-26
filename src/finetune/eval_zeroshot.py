@@ -87,12 +87,14 @@ def main():
     rows = [json.loads(l) for l in TEST.read_text(encoding="utf-8").splitlines()]
     RESULTS.mkdir(exist_ok=True)
     if os.environ.get("LLM_MODE", "").lower() == "ollama":
-        providers = [("ollama", "ollama-local")]  # routed to ollama; honest filename
+        providers = [("ollama", "ollama-local", 1.0)]  # routed to ollama
     else:
-        providers = [("groq", "groq"), ("gemini", "gemini")]
-    for provider, label in providers:
-        print(f"=== zero-shot {label} on {len(rows)} pairs", flush=True)
-        preds = judge(provider, rows)
+        # Gemini first (steady 10 RPM); Groq second with slow pacing — its free
+        # 70B TPM budget chokes on our batch size and triggers deep backoffs.
+        providers = [("gemini", "gemini", 6.5), ("groq", "groq", 16.0)]
+    for provider, label, sleep_s in providers:
+        print(f"=== zero-shot {label} on {len(rows)} pairs (sleep {sleep_s}s)", flush=True)
+        preds = judge(provider, rows, sleep=sleep_s)
         m = metrics(rows, preds)
         p = RESULTS / f"metrics_zeroshot_{label}.json"
         p.write_text(json.dumps(m, indent=2), encoding="utf-8")

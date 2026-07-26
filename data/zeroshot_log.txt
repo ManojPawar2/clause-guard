@@ -1,1 +1,8 @@
 === zero-shot groq on 563 pairs
+[groq] 5/563
+[groq] 55/563
+[groq] 105/563
+[groq] 155/563
+[groq] 205/563
+[groq] 255/563
+[groq] 305/563
