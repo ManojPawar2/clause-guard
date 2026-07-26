@@ -1,0 +1,6 @@
+listing: 18734 usable rows
+=== dept 08: 400 targets
+  MISS 202408061443465908: gone(404)
+  MISS 202408091714345808: gone(404)
+  MISS 202407311656260208: gone(404)
+[bulk-08] 25/368 ok=22 skip=32 miss=3 (126s, 0.2/s, eta 29m)

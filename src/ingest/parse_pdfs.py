@@ -15,8 +15,40 @@ import pdfplumber
 sys.path.append(str(Path(__file__).parent))
 from chunk_clauses import chunk  # noqa: E402
 from extract_metadata import extract_citations, parse_header  # noqa: E402
+from quality import readability  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
+
+# Marathi header fallbacks (the corpus turned out to be Marathi-primary)
+import re  # noqa: E402
+
+MR_DEPT_RE = re.compile(r"^\s*([ऀ-ॿ][ऀ-ॿ ,()&.\-]*(?:विभाग|वभाग|भवभाग|जवभाग|शवभाग|नवभाग|मवभाग|ववभाग|चवभाग|खवभाग))\s*[,.]?\s*$",
+                        re.MULTILINE)
+MR_DATE_RE = re.compile(r"(?:दिनांक|ददनांक|नदनांक|मदनांक|भदनांक|खदनांक|दिनाक|दिनांक)\s*[:\-. ]*\s*([0-9०-९]{1,2}[^\n,]{0,25}[0-9०-९]{4})")
+MR_GRNO_RE = re.compile(r"(?:क्रमांक|क्रमाकं|क्रमाांक|क्र\.?)\s*[:\-ः]*\s*([^\n]{4,80})")
+
+
+def parse_header_bilingual(text: str) -> dict:
+    h = parse_header(text)
+    if not h["department"]:
+        m = MR_DEPT_RE.search(text)
+        if m:
+            h["department"] = re.sub(r"\s+", " ", m.group(1)).strip()
+    if not h["date"]:
+        m = MR_DATE_RE.search(text)
+        if m:
+            h["date"] = re.sub(r"\s+", " ", m.group(1)).strip()
+    if not h["gr_number"]:
+        m = MR_GRNO_RE.search(text)
+        if m:
+            h["gr_number"] = m.group(1).strip().rstrip(",.")
+    if not h["subject"]:
+        # subject block = lines before the महाराष्ट्र शासन-ish line
+        m = re.search(r"^(.*?)(?:महाराष्ट्र शासन|महाराष्र शासन|िहाराष्र िासन|िहाराष्ट्र िासन|महाराष्ट्र िासन|र्महाराष्र शासन)",
+                      text, re.DOTALL)
+        if m and 10 < len(m.group(1).strip()) < 600:
+            h["subject"] = re.sub(r"\s+", " ", m.group(1).strip())[:300]
+    return h
 
 
 def read_pdf(path: Path, max_pages: int = 30):
@@ -46,8 +78,8 @@ def cmd_headers(dir_: Path):
         print(f"{code} | {stem} | {dept} | {subj}")
 
 
-def cmd_corpus(dir_: Path, out: Path):
-    n_ok = n_thin = n_fail = 0
+def cmd_corpus(dir_: Path, out: Path, min_quality: float = 0.0):
+    n_ok = n_thin = n_fail = n_lowq = 0
     with out.open("w", encoding="utf-8") as f:
         for p in sorted(dir_.glob("*.pdf")):
             first, full = read_pdf(p)
@@ -57,23 +89,35 @@ def cmd_corpus(dir_: Path, out: Path):
             if len((full or "").strip()) < 400:  # likely scanned/empty
                 n_thin += 1
                 continue
-            h = parse_header(first)
+            q = readability(full)
+            if q["score"] < min_quality:
+                n_lowq += 1
+                continue
+            h = parse_header_bilingual(first)
             cites = extract_citations(full)
             clauses = chunk(full)
+            # filename first 8 digits = GR date (authoritative; header fonts garble)
+            ymd = p.stem[:8]
+            date_iso = f"{ymd[:4]}-{ymd[4:6]}-{ymd[6:8]}" if ymd.isdigit() else None
             rec = {
                 "id": p.stem,
                 "gr_code": p.stem,
+                "dept_code": p.stem[-2:],
                 "department": h["department"],
                 "gr_number": h["gr_number"],
-                "date": h["date"],
+                "date": h["date"] or date_iso,
+                "date_iso": date_iso,
                 "subject": h["subject"],
                 "n_chars": len(full),
+                "quality": q["score"],
+                "quality_verdict": q["verdict"],
                 "clauses": clauses,
                 **cites,
             }
             f.write(json.dumps(rec, ensure_ascii=False) + "\n")
             n_ok += 1
-    print(f"corpus: ok={n_ok} thin/scanned={n_thin} fail={n_fail} -> {out}", flush=True)
+    print(f"corpus: ok={n_ok} thin/scanned={n_thin} low-quality={n_lowq} fail={n_fail} -> {out}",
+          flush=True)
 
 
 if __name__ == "__main__":
@@ -82,8 +126,9 @@ if __name__ == "__main__":
     ap.add_argument("mode", choices=["headers", "corpus"])
     ap.add_argument("--dir", default=str(ROOT / "data" / "raw_pdfs"))
     ap.add_argument("--out", default=str(ROOT / "data" / "corpus.jsonl"))
+    ap.add_argument("--min-quality", type=float, default=0.0)
     a = ap.parse_args()
     if a.mode == "headers":
         cmd_headers(Path(a.dir))
     else:
-        cmd_corpus(Path(a.dir), Path(a.out))
+        cmd_corpus(Path(a.dir), Path(a.out), a.min_quality)

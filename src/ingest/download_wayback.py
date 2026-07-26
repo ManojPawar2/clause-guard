@@ -67,27 +67,62 @@ def fetch(url, ts, dest, session, max_tries=4):
     return "failed"
 
 
-def run(targets, out_dir, label):
+def run(targets, out_dir, label, workers=1):
     out_dir.mkdir(parents=True, exist_ok=True)
-    session = requests.Session()
-    session.headers["User-Agent"] = UA
     ok = skip = bad = 0
     t0 = time.time()
-    for i, (code, _year, _dept2, url, ts) in enumerate(targets, 1):
+
+    todo = []
+    for code, _year, _dept2, url, ts in targets:
         dest = out_dir / f"{code}.pdf"
         if dest.exists() and dest.stat().st_size > 1024:
             skip += 1
-            continue
-        status = fetch(url, ts, dest, session)
-        if status == "ok":
-            ok += 1
         else:
-            bad += 1
-            print(f"  MISS {code}: {status}", flush=True)
-        if i % 25 == 0 or i == len(targets):
-            el = time.time() - t0
-            print(f"[{label}] {i}/{len(targets)} ok={ok} skip={skip} miss={bad} ({el:.0f}s)", flush=True)
-        time.sleep(1.2)
+            todo.append((code, url, ts, dest))
+
+    if workers <= 1:
+        session = requests.Session()
+        session.headers["User-Agent"] = UA
+        for i, (code, url, ts, dest) in enumerate(todo, 1):
+            status = fetch(url, ts, dest, session)
+            if status == "ok":
+                ok += 1
+            else:
+                bad += 1
+                print(f"  MISS {code}: {status}", flush=True)
+            if i % 25 == 0:
+                el = time.time() - t0
+                print(f"[{label}] {i}/{len(todo)} ok={ok} skip={skip} miss={bad} ({el:.0f}s)",
+                      flush=True)
+            time.sleep(1.2)
+    else:
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+        import threading
+        local = threading.local()
+
+        def worker(item):
+            code, url, ts, dest = item
+            if not hasattr(local, "s"):
+                local.s = requests.Session()
+                local.s.headers["User-Agent"] = UA
+            time.sleep(0.15)
+            return code, fetch(url, ts, dest, local.s, max_tries=3)
+
+        with ThreadPoolExecutor(max_workers=workers) as ex:
+            futs = [ex.submit(worker, it) for it in todo]
+            for i, fut in enumerate(as_completed(futs), 1):
+                code, status = fut.result()
+                if status == "ok":
+                    ok += 1
+                else:
+                    bad += 1
+                    print(f"  MISS {code}: {status}", flush=True)
+                if i % 25 == 0:
+                    el = time.time() - t0
+                    rate = i / max(el, 1)
+                    eta = (len(todo) - i) / max(rate, 0.01) / 60
+                    print(f"[{label}] {i}/{len(todo)} ok={ok} skip={skip} miss={bad} "
+                          f"({el:.0f}s, {rate:.1f}/s, eta {eta:.0f}m)", flush=True)
     print(f"[{label}] DONE ok={ok} skip={skip} miss={bad}", flush=True)
 
 
@@ -98,6 +133,7 @@ def main():
     ap.add_argument("--per-code", type=int, default=2)
     ap.add_argument("--max", type=int, default=600)
     ap.add_argument("--min-year", type=int, default=2019)
+    ap.add_argument("--workers", type=int, default=1)
     args = ap.parse_args()
 
     rows = [r for r in load_listing() if r[1] >= args.min_year]
