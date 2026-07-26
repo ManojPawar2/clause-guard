@@ -89,7 +89,37 @@ def analyze_references(draft_text: str, corpus: list) -> dict:
                     superseders[code] = r["gr_code"]
                     break
 
+    # Currency advisory: a cited GR that has NEWER corpus GRs on the same
+    # subject may be outdated even when no explicit supersession is extractable
+    # (font garble often hides the formal supersession language).
+    TOKR = re.compile(r"[A-Za-z]{3,}|[ऀ-ॿ]{3,}")
+
+    def _toks(s):
+        return set(TOKR.findall(s or ""))
+
+    def _jac(a, b):
+        return len(a & b) / max(1, len(a | b))
+
+    newer_related = []
+    for entry in linked:
+        m = entry["match"]
+        tx = _toks(m.get("subject"))
+        if len(tx) < 4:
+            continue
+        newer = [r for r in corpus
+                 if r["gr_code"] > m["gr_code"] and _jac(tx, _toks(r.get("subject"))) >= 0.35]
+        if newer:
+            newer.sort(key=lambda r: r["gr_code"], reverse=True)
+            newer_related.append({
+                "cited": entry["cited"],
+                "cited_date": m.get("date_iso") or m.get("date"),
+                "newer": [{"gr_code": r["gr_code"],
+                           "date": r.get("date_iso") or r.get("date"),
+                           "subject": (r.get("subject") or "")[:120]} for r in newer[:3]],
+            })
+
     return {"linked": linked, "unknown": unknown, "stale": stale,
+            "newer_related": newer_related,
             "n_citations": len(cites["cited_codes"]) + len(cites["cited_refs"])}
 
 

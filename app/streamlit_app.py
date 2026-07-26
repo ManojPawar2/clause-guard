@@ -149,6 +149,14 @@ with t_refs:
         for s in refs["stale"]:
             st.error(f"⚠️ Cites **{s['cited']}** which appears superseded by "
                      f"`{s['superseded_by']}` — {s.get('successor_subject','')}")
+        for a in refs.get("newer_related", []):
+            newest = a["newer"][0]
+            st.warning(
+                f"🕐 **Currency check:** cites a GR dated **{a['cited_date']}** — "
+                f"{len(a['newer'])} newer GR(s) exist on the same subject "
+                f"(latest `{newest['gr_code']}`, {newest['date']}). "
+                f"Verify the cited GR is still the operative one."
+            )
         if refs["linked"]:
             st.markdown("**Linked references**")
             for l in refs["linked"]:
