@@ -1,1 +1,2 @@
 === zero-shot ollama-local on 563 pairs (sleep 1.0s)
+[ollama] 5/563

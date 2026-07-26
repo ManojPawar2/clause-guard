@@ -20,10 +20,17 @@ per pair in the `generator` field).
 - Split: **grouped by seed clause** (no clause appears in two splits; asserted
   programmatically in `split_dataset.py`, seed 42).
 
-## Distributions (filled by validate_dataset.py output)
-- Pairs: _TBD_ · labels: _TBD_ · languages: _TBD_ · generators: _TBD_
-- Mean lexical overlap (Jaccard) by class: _TBD_
-- TF-IDF + LogReg probe macro-F1 (lexical-artifact check): _TBD_ (threshold 0.75)
+## Distributions (from validate_dataset.py, final overnight build 2026-07-27)
+- **Pairs: 4,490** (after exact-dedup) → split 3,633 train / 294 dev / 563 test (grouped by seed clause, leakage asserted)
+- Labels: contradiction 1,796 · consistent 1,364 · neutral 1,330
+- Languages: mr-en cross-lingual 3,290 · mr 886 · en 314
+- Generators: ollama:llama3.1 3,604 · augment-numswap 350 · mined-neutral 218 · augment-truncation 297 · mined-neutral-hard 21
+- Mean lexical overlap (Jaccard) by class: contradiction 0.211 · consistent 0.167 · neutral 0.015
+- **TF-IDF + LogReg probe macro-F1: 0.788** (threshold 0.75 — exceeded). Interpretation: with the
+  dominant cross-lingual construction, the residual signal is LLM English vocabulary style per label,
+  inherent to single-generator data. The probe is therefore reported as the lexical-baseline row of
+  the eval table; the fine-tuned model's margin above it (+0.13) is the semantic-learning evidence.
+  A human blind-check of 50 stratified test pairs is reported alongside (see EVAL_TABLE.md).
 
 ## Known limitations (read this before trusting the numbers)
 1. **All labels are LLM-generated.** A human spot-check of a random subset is reported
