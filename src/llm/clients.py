@@ -34,6 +34,12 @@ _load_env()  # must run BEFORE the model constants read os.environ
 
 GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
 GROQ_MODEL = os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile")
+# LLM_MODE=ollama routes EVERY call to a local Ollama server (testing without
+# API keys); delete the line from .env to switch back to Gemini/Groq. The disk
+# cache keys on provider+model, so ollama-era cache never pollutes cloud runs.
+LLM_MODE = os.environ.get("LLM_MODE", "cloud").lower()
+OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "llama3.1")
+OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://localhost:11434")
 
 
 class LLMError(RuntimeError):
@@ -132,21 +138,46 @@ def _groq(prompt, temperature, max_tokens, json_mode):
         raise LLMError(f"groq: unexpected response shape: {str(data)[:300]}")
 
 
+def _ollama(prompt, temperature, max_tokens, json_mode):
+    payload = {
+        "model": OLLAMA_MODEL,
+        "messages": [{"role": "user", "content": prompt}],
+        "stream": False,
+        "options": {"temperature": temperature, "num_predict": max_tokens},
+    }
+    if json_mode:
+        payload["format"] = "json"
+    try:
+        r = requests.post(f"{OLLAMA_URL}/api/chat", json=payload, timeout=600)
+        if r.status_code != 200:
+            raise LLMError(f"ollama HTTP {r.status_code}: {r.text[:200]}")
+        return r.json()["message"]["content"]
+    except requests.RequestException as e:
+        raise LLMError(f"ollama: {type(e).__name__}: {e}")
+
+
 def llm(prompt, provider="groq", temperature=0.2, max_tokens=2048,
         json_mode=False, use_cache=True):
-    model = GROQ_MODEL if provider == "groq" else GEMINI_MODEL
+    if LLM_MODE == "ollama":
+        provider, model = "ollama", OLLAMA_MODEL
+    else:
+        model = GROQ_MODEL if provider == "groq" else GEMINI_MODEL
     if use_cache:
         hit = _cached(provider, model, temperature, prompt)
         if hit is not None:
             return hit
-    text = (_groq if provider == "groq" else _gemini)(prompt, temperature, max_tokens, json_mode)
+    fn = {"ollama": _ollama, "groq": _groq, "gemini": _gemini}[provider]
+    text = fn(prompt, temperature, max_tokens, json_mode)
     if use_cache:
         _store(provider, model, temperature, prompt, text)
     return text
 
 
 def llm_with_fallback(prompt, preferred="groq", **kw):
-    """Try preferred provider; on failure, silently try the other one."""
+    """Try preferred provider; on failure, silently try the other one.
+    In ollama mode there is no second provider — the single call is the ball game."""
+    if LLM_MODE == "ollama":
+        return llm(prompt, **kw)
     other = "gemini" if preferred == "groq" else "groq"
     try:
         return llm(prompt, provider=preferred, **kw)
@@ -155,8 +186,9 @@ def llm_with_fallback(prompt, preferred="groq", **kw):
 
 
 if __name__ == "__main__":
-    # M0 gate: one live round-trip per provider.
-    for prov in ("groq", "gemini"):
+    # M0 gate: one live round-trip per active provider.
+    provs = ["ollama"] if LLM_MODE == "ollama" else ["groq", "gemini"]
+    for prov in provs:
         try:
             out = llm("Reply with exactly: OK", provider=prov, use_cache=False, max_tokens=1024)
             print(f"{prov}: {out.strip()[:40]!r}")
