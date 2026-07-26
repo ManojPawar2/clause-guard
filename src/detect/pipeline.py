@@ -58,6 +58,27 @@ Output ONLY the JSON.
 
 {pairs}"""
 
+# The screener sometimes states an exclusion rule in its own reason and then
+# flags anyway ("introduces a new benefit not covered by..."). Catch the
+# self-reported exclusions in code and downgrade without wasting a verify call.
+SELF_EXCLUDED_REASON_RE = re.compile(
+    r"new benefit|not covered|not present in|not mentioned in|introduces a new"
+    r"|different URL|unique code|file number",
+    re.IGNORECASE,
+)
+
+VERIFY_PROMPT = """Two clauses from Maharashtra Government Resolutions were flagged as possibly conflicting. Double-check STRICTLY.
+
+CLAUSE 1 (draft): {draft}
+
+CLAUSE 2 (existing): {existing}
+
+Answer two questions:
+1. same_scheme: Do BOTH clauses govern the SAME specific scheme/benefit for the SAME beneficiary group? (A different scholarship, a different stipend scheme, a different year's one-time sanction, or a merely similar topic = false.)
+2. explicit_contradiction: Do the clauses state incompatible values (amount/date/eligibility/authority/scope) such that both cannot be in force together? (One adding information the other omits = false.)
+
+Output ONLY JSON: {{"same_scheme": true|false, "explicit_contradiction": true|false}}"""
+
 EXPLAIN_PROMPT = """A draft Maharashtra Government Resolution contains a clause that conflicts with an existing GR. Explain the conflict precisely for a government drafting officer.
 
 DRAFT CLAUSE:
@@ -139,11 +160,28 @@ def review_draft(draft_text: str, top_k=4, max_draft_clauses=25, progress=None):
     verdicts = screen_pairs(pairs)
     conflicts = []
     for p, v in zip(pairs, verdicts):
-        if v["label"] == "conflict":
-            if progress:
-                progress("explaining flagged conflict")
-            expl = explain_conflict(p["draft"], p["candidate"], p["meta"], v["reason"])
-            conflicts.append({**p, "reason": v["reason"], "explanation": expl})
+        if v["label"] != "conflict":
+            continue
+        if SELF_EXCLUDED_REASON_RE.search(v.get("reason", "")):
+            v["label"] = "neutral"  # screener applied an exclusion rule backwards
+            continue
+        # precision gate: verify same-scheme + explicit contradiction before accepting
+        if progress:
+            progress("verifying flagged conflict")
+        try:
+            raw = llm_with_fallback(
+                VERIFY_PROMPT.format(draft=p["draft"][:700], existing=p["candidate"][:700]),
+                temperature=0.0, max_tokens=256, json_mode=True)
+            chk = json.loads(_json_slice(raw))
+            if not (chk.get("same_scheme") and chk.get("explicit_contradiction")):
+                v["label"] = "neutral"
+                continue
+        except (LLMError, json.JSONDecodeError, ValueError):
+            pass  # verification unavailable -> keep the screen verdict
+        if progress:
+            progress("explaining flagged conflict")
+        expl = explain_conflict(p["draft"], p["candidate"], p["meta"], v["reason"])
+        conflicts.append({**p, "reason": v["reason"], "explanation": expl})
     return {"n_clauses": len(clauses), "clauses": clauses, "n_pairs": len(pairs),
             "verdicts": verdicts, "pairs": pairs, "conflicts": conflicts}
 
