@@ -239,8 +239,12 @@ def hard_neutrals(recs, rng, max_total=250):
     return out
 
 
-def mine_neutrals(recs, rng, max_total=350):
+def mine_neutrals(recs, rng, max_total=350, max_easy=120):
+    """Neutrals with a DELIBERATE overlap spread: mostly moderate-overlap pairs
+    (shared government vocabulary, different matters) so that near-zero overlap
+    does not become a 'neutral' fingerprint; a smaller easy low-overlap slice."""
     out = []
+    n_easy = 0
     pool = []
     for r in recs:
         for i, c in enumerate(r["clauses"]):
@@ -251,9 +255,15 @@ def mine_neutrals(recs, rng, max_total=350):
         if len(out) >= max_total:
             break
         (ca_code, da, ia, ca), (cb_code, db, ib, cb) = pool[k], pool[k + 1]
-        if da == db:
+        if ca_code == cb_code:
             continue
-        if jaccard(tokens(ca), tokens(cb)) > 0.15:
+        j = jaccard(tokens(ca), tokens(cb))
+        if 0.08 <= j <= 0.40:
+            kind = "moderate"
+        elif j < 0.08 and da != db and n_easy < max_easy:
+            kind = "easy"
+            n_easy += 1
+        else:
             continue
         out.append({
             "seed_id": f"neutral:{ca_code}:{ia}x{cb_code}:{ib}",
