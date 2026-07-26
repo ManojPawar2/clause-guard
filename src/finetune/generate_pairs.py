@@ -21,36 +21,65 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.append(str(ROOT / "src" / "llm"))
-from clients import llm, LLMError  # noqa: E402
+from clients import llm, LLMError, LLM_MODE, OLLAMA_MODEL  # noqa: E402
 
 OUT = ROOT / "data" / "pairs_raw.jsonl"
 
-GEN_PROMPT = """You are creating a training dataset for detecting conflicts between clauses of Maharashtra Government Resolutions (GRs).
+# One label per call — small models follow narrow single-task prompts far better.
+# The premise is ALWAYS the seed clause verbatim; only the hypothesis is generated.
+LABEL_PROMPTS = {
+    "contradiction": """A clause from a real Maharashtra Government Resolution is given. Write {n} DIFFERENT hypothesis clauses in {hyp_lang} that each CONTRADICT it — the two clauses could not both be in force.
 
-Below is a REAL seed clause from a GR. Generate {n} labeled clause PAIRS as JSON.
+Each hypothesis must contradict on exactly ONE aspect, and you must state which:
+- "amount": a different number/percentage/money amount FOR THE SAME benefit or item
+- "date": a different date/deadline/duration FOR THE SAME event or scheme
+- "eligibility": the SAME group/condition included where the clause excludes it, or vice versa
+- "authority": a DIFFERENT authority/procedure for the SAME action
+- "scope": the SAME scheme covering a different area/category than stated
 
-SEED CLAUSE (id {seed_id}):
+CRITICAL: the hypothesis must be about the SAME scheme/subject as the clause. A different scheme with different numbers is NOT a contradiction.
+Make at least one hypothesis a full rephrasing (different sentence structure, synonyms), not a copy with one number changed.
+
+CLAUSE:
 {seed}
 
-Produce this exact JSON shape:
-{{"pairs": [{{"premise": "...", "hypothesis": "...", "label": "contradiction"|"consistent"|"neutral", "conflict_type": "amount"|"date"|"eligibility"|"authority"|"scope"|"none", "lang": "{lang}"}}]}}
+Output ONLY JSON: {{"items": [{{"hypothesis": "...", "conflict_type": "amount|date|eligibility|authority|scope"}}]}}""",
 
-Rules:
-- premise = the seed clause (possibly lightly cleaned), or a close variant of it.
-- For CONTRADICTION pairs ({n_contra} of them): hypothesis contradicts the premise on exactly ONE of: numeric amount/percentage ("amount"), date/deadline/duration ("date"), eligibility criterion reversed ("eligibility"), sanctioning authority/procedure ("authority"), coverage/scope ("scope"). Vary which one. IMPORTANT: for about half of these, fully REPHRASE the hypothesis (different sentence structure and synonyms) so it does not lexically mirror the premise; for the other half make a minimal edit.
-- For CONSISTENT pairs ({n_cons} of them): hypothesis is a faithful paraphrase, a subset restatement, or a consistent elaboration — at least one must be a heavy paraphrase with low word overlap.
-- For NEUTRAL pairs ({n_neut} of them): hypothesis is about a DIFFERENT scheme/topic with no logical relation; at least one must reuse similar government vocabulary (hard negative) while remaining unrelated.
-- Language: write both premise and hypothesis in {lang_full}.
-- Keep every clause between 25 and 90 words, realistic GR drafting style.
-Output ONLY the JSON."""
+    "consistent": """A clause from a real Maharashtra Government Resolution is given. Write {n} DIFFERENT hypothesis clauses in {hyp_lang} that are each CONSISTENT with it — restating, paraphrasing, or elaborating the SAME rule without changing any fact, number, date, or condition.
+
+At least one must be a heavy paraphrase with very different wording. Do NOT add new facts that the clause does not state; do NOT merely comment about the clause (e.g. "this will be reviewed") — restate its content.
+
+CLAUSE:
+{seed}
+
+Output ONLY JSON: {{"items": [{{"hypothesis": "..."}}]}}""",
+
+    "neutral": """A clause from a real Maharashtra Government Resolution is given. Write {n} DIFFERENT hypothesis clauses in {hyp_lang} about UNRELATED government matters — different schemes/subjects with no logical relation to the clause (neither restating nor contradicting it).
+
+At least one must be a HARD case: reuse similar government vocabulary (sanction, scheme, disbursement, eligible, academic year) while being about a genuinely different matter.
+
+CLAUSE:
+{seed}
+
+Output ONLY JSON: {{"items": [{{"hypothesis": "..."}}]}}""",
+}
 
 
-def load_seed_clauses(min_len=120, max_len=900):
-    corpus = ROOT / "data" / "corpus.jsonl"
+def load_seed_clauses(min_len=120, max_len=900, min_doc_quality=0.14):
+    """Seed only from the cleanest-extracting docs — garbled seeds would poison
+    the dataset (prefers corpus_clean.jsonl when the LLM repair pass has run)."""
+    corpus = None
+    for name in ("corpus_clean.jsonl", "corpus.jsonl"):
+        p = ROOT / "data" / name
+        if p.exists():
+            corpus = p
+            break
     seeds = []
     with open(corpus, encoding="utf-8") as f:
         for line in f:
             r = json.loads(line)
+            if r.get("quality", 1.0) < min_doc_quality and not r.get("cleaned"):
+                continue
             for i, c in enumerate(r["clauses"]):
                 if min_len <= len(c) <= max_len:
                     seeds.append({"seed_id": f"{r['gr_code']}:{i}", "text": c,
@@ -72,10 +101,11 @@ def already_done():
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--target-pairs", type=int, default=3600)
-    ap.add_argument("--per-seed", type=int, default=9)
+    ap.add_argument("--per-label", type=int, default=3, help="hypotheses per label per seed")
     ap.add_argument("--provider", default="gemini", choices=["gemini", "groq"])
-    ap.add_argument("--mr-frac", type=float, default=0.35,
-                    help="fraction of seeds generated in Marathi")
+    ap.add_argument("--hyp-lang", default="en", choices=["en", "same", "mixed"],
+                    help="hypothesis language: en=English (safe for small models), "
+                         "same=language of the seed, mixed=random per seed")
     ap.add_argument("--sleep", type=float, default=6.5)
     args = ap.parse_args()
 
@@ -85,8 +115,6 @@ def main():
     done = already_done()
     print(f"{len(seeds)} seed clauses, {len(done)} already generated", flush=True)
 
-    n_written = sum(1 for _ in OUT.open(encoding="utf-8")) if OUT.exists() else 0
-    total_pairs = n_written * 0  # informational only; recount below
     total_pairs = 0
     if OUT.exists():
         for line in OUT.open(encoding="utf-8"):
@@ -95,9 +123,7 @@ def main():
             except Exception:
                 pass
 
-    n_contra = max(3, round(args.per_seed * 0.35))
-    n_cons = max(3, round(args.per_seed * 0.35))
-    n_neut = args.per_seed - n_contra - n_cons
+    gen = f"ollama:{OLLAMA_MODEL}" if LLM_MODE == "ollama" else args.provider
 
     with OUT.open("a", encoding="utf-8") as out:
         for s in seeds:
@@ -105,31 +131,46 @@ def main():
                 break
             if s["seed_id"] in done:
                 continue
-            lang = "mr" if random.random() < args.mr_frac else "en"
-            lang_full = "Marathi (Devanagari)" if lang == "mr" else "English"
-            prompt = GEN_PROMPT.format(n=args.per_seed, n_contra=n_contra,
-                                       n_cons=n_cons, n_neut=n_neut,
-                                       seed=s["text"][:1200], seed_id=s["seed_id"],
-                                       lang=lang, lang_full=lang_full)
-            try:
-                raw = llm(prompt, provider=args.provider, temperature=0.7,
-                          max_tokens=4096, json_mode=True, use_cache=False)
-                m = re.search(r"\{.*\}", raw, re.DOTALL)
-                data = json.loads(m.group(0) if m else raw)
-                pairs = [p for p in data.get("pairs", [])
-                         if p.get("premise") and p.get("hypothesis")
-                         and p.get("label") in ("contradiction", "consistent", "neutral")]
-                if pairs:
-                    out.write(json.dumps({"seed_id": s["seed_id"],
-                                          "gr_code": s["gr_code"],
-                                          "generator": args.provider,
-                                          "pairs": pairs}, ensure_ascii=False) + "\n")
-                    out.flush()
-                    total_pairs += len(pairs)
-                    print(f"{s['seed_id']}: +{len(pairs)} (total {total_pairs})", flush=True)
-            except (LLMError, json.JSONDecodeError, ValueError) as e:
-                print(f"{s['seed_id']}: SKIP ({str(e)[:120]})", flush=True)
-            time.sleep(args.sleep)
+            seed_is_mr = bool(re.search(r"[ऀ-ॿ]{3,}", s["text"]))
+            if args.hyp_lang == "en":
+                hyp_lang = "English"
+            elif args.hyp_lang == "same":
+                hyp_lang = "Marathi (Devanagari)" if seed_is_mr else "English"
+            else:
+                hyp_lang = random.choice(["English", "Marathi (Devanagari)"])
+            pairs = []
+            for label, tmpl in LABEL_PROMPTS.items():
+                prompt = tmpl.format(n=args.per_label, seed=s["text"][:1200],
+                                     hyp_lang=hyp_lang)
+                try:
+                    raw = llm(prompt, provider=args.provider, temperature=0.6,
+                              max_tokens=2048, json_mode=True, use_cache=False)
+                    m = re.search(r"\{.*\}", raw, re.DOTALL)
+                    data = json.loads(m.group(0) if m else raw)
+                    for item in data.get("items", []):
+                        hyp = (item.get("hypothesis") or "").strip()
+                        if len(hyp) < 30:
+                            continue
+                        pairs.append({
+                            "premise": s["text"],
+                            "hypothesis": hyp,
+                            "label": label,
+                            "conflict_type": item.get("conflict_type", "none")
+                            if label == "contradiction" else "none",
+                            "lang": ("mr" if seed_is_mr else "en") +
+                                    ("-en" if hyp_lang == "English" and seed_is_mr else ""),
+                        })
+                except (LLMError, json.JSONDecodeError, ValueError) as e:
+                    print(f"{s['seed_id']}/{label}: SKIP ({str(e)[:100]})", flush=True)
+                time.sleep(args.sleep)
+            if pairs:
+                out.write(json.dumps({"seed_id": s["seed_id"],
+                                      "gr_code": s["gr_code"],
+                                      "generator": gen,
+                                      "pairs": pairs}, ensure_ascii=False) + "\n")
+                out.flush()
+                total_pairs += len(pairs)
+                print(f"{s['seed_id']}: +{len(pairs)} (total {total_pairs})", flush=True)
     print(f"DONE: {total_pairs} pairs in {OUT}", flush=True)
 
 
