@@ -74,6 +74,8 @@ def load_seed_clauses(min_len=120, max_len=900, min_doc_quality=0.14):
         if p.exists():
             corpus = p
             break
+    sys.path.append(str(ROOT / "src" / "ingest"))
+    from quality import readability
     seeds = []
     with open(corpus, encoding="utf-8") as f:
         for line in f:
@@ -81,9 +83,14 @@ def load_seed_clauses(min_len=120, max_len=900, min_doc_quality=0.14):
             if r.get("quality", 1.0) < min_doc_quality and not r.get("cleaned"):
                 continue
             for i, c in enumerate(r["clauses"]):
-                if min_len <= len(c) <= max_len:
-                    seeds.append({"seed_id": f"{r['gr_code']}:{i}", "text": c,
-                                  "gr_code": r["gr_code"]})
+                if not (min_len <= len(c) <= max_len):
+                    continue
+                # clause-level gate: a clean doc can still contain garbled clauses
+                q = readability(c, min_words=12)
+                if q["verdict"] != "too-short" and q["score"] < 0.13:
+                    continue
+                seeds.append({"seed_id": f"{r['gr_code']}:{i}", "text": c,
+                              "gr_code": r["gr_code"]})
     return seeds
 
 

@@ -34,9 +34,9 @@ COMMON = set("""
 DEV_WORD = re.compile(r"[ऀ-ॿ]{2,}")
 
 
-def readability(text: str) -> dict:
+def readability(text: str, min_words: int = 30) -> dict:
     words = DEV_WORD.findall(text)
-    if len(words) < 30:
+    if len(words) < min_words:
         return {"score": 0.0, "n_words": len(words), "verdict": "too-short"}
     hits = sum(1 for w in words if w in COMMON)
     score = hits / len(words)
