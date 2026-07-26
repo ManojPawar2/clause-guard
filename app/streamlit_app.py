@@ -31,10 +31,13 @@ st.markdown(
 
 @st.cache_data
 def load_corpus_cached():
-    p = ROOT / "data" / "corpus.jsonl"
-    if not p.exists():
-        return []
-    return [json.loads(l) for l in p.read_text(encoding="utf-8").splitlines() if l.strip()]
+    # prefer the LLM-cleaned corpus when it exists
+    for name in ("corpus_clean.jsonl", "corpus.jsonl"):
+        p = ROOT / "data" / name
+        if p.exists():
+            return [json.loads(l) for l in p.read_text(encoding="utf-8").splitlines()
+                    if l.strip()]
+    return []
 
 
 @st.cache_data

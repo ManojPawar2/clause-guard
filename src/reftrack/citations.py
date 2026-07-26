@@ -12,7 +12,14 @@ from extract_metadata import extract_citations  # noqa: E402
 
 
 def load_corpus(path=None):
-    path = path or ROOT / "data" / "corpus.jsonl"
+    if path is None:
+        for name in ("corpus_clean.jsonl", "corpus.jsonl"):
+            p = ROOT / "data" / name
+            if p.exists():
+                path = p
+                break
+        else:
+            path = ROOT / "data" / "corpus.jsonl"
     recs = []
     with open(path, encoding="utf-8") as f:
         for line in f:

@@ -34,3 +34,10 @@ listing: 18734 usable rows
   MISS 202403071558497222: failed
 [bulk-22] 150/242 ok=149 skip=0 miss=1 (388s, 0.4/s, eta 4m)
 [bulk-22] 175/242 ok=174 skip=0 miss=1 (458s, 0.4/s, eta 3m)
+[bulk-22] 200/242 ok=199 skip=0 miss=1 (498s, 0.4/s, eta 2m)
+[bulk-22] 225/242 ok=224 skip=0 miss=1 (551s, 0.4/s, eta 1m)
+  MISS 202204211623337922: failed
+[bulk-22] DONE ok=240 skip=0 miss=2
+=== dept 21: 356 targets
+[bulk-21] 25/356 ok=25 skip=0 miss=0 (58s, 0.4/s, eta 13m)
+  MISS 202408051444252521: failed

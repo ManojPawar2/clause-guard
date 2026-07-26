@@ -30,8 +30,16 @@ def client():
     return chromadb.PersistentClient(path=DB_DIR)
 
 
+def default_corpus_path():
+    for name in ("corpus_clean.jsonl", "corpus.jsonl"):
+        p = ROOT / "data" / name
+        if p.exists():
+            return p
+    return ROOT / "data" / "corpus.jsonl"
+
+
 def build(corpus_path=None, max_clauses_per_gr=60):
-    corpus_path = corpus_path or ROOT / "data" / "corpus.jsonl"
+    corpus_path = corpus_path or default_corpus_path()
     cl = client()
     try:
         cl.delete_collection(COLLECTION)
