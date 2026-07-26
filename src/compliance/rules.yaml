@@ -11,12 +11,12 @@ rules:
     regex: "[A-Z][A-Za-z,&' ]+Department|विभाग"
     weight: 1
   - id: gr_number
-    desc: "GR number present (Government Resolution No. ...)"
-    regex: "(Government\\s+(Resolution|Circular)|Corrigendum)\\s*No\\.?\\s*[:\\-]?"
+    desc: "GR number present (Government Resolution No. / शासन निर्णय क्रमांक)"
+    regex: "(Government\\s+(Resolution|Circular)|Corrigendum)\\s*No\\.?\\s*[:\\-]?|शासन\\s*(निर्णय|परिपत्रक)\\s*(क्रमांक|क्र)"
     weight: 2
   - id: date_line
     desc: "Date line present and parseable"
-    regex: "Date[d]?\\s*[:\\-. ]*\\s*\\d{1,2}"
+    regex: "Date[d]?\\s*[:\\-. ]*\\s*\\d{1,2}|दिनांक\\s*[:\\-]?\\s*[0-9०-९]{1,2}"
     weight: 2
   - id: mantralaya
     desc: "Place of issue present (Mantralaya, Mumbai)"
