@@ -168,6 +168,77 @@ def augment_numswap(recs, rng, max_total=350):
     return out
 
 
+def truncation_consistents(recs, rng, max_total=300):
+    """High-overlap CONSISTENT pairs: a clause vs its own leading portion —
+    a genuine subset restatement of the same rule. Purpose: give the
+    'consistent' class a high-lexical-overlap cohort so surface overlap stops
+    predicting the label (the number-swap contradictions are high-overlap)."""
+    out = []
+    pool = []
+    for r in recs:
+        for i, c in enumerate(r["clauses"]):
+            if good_clause(c) and len(c) >= 300:
+                pool.append((r["gr_code"], i, c))
+    rng.shuffle(pool)
+    for code, i, c in pool:
+        if len(out) >= max_total:
+            break
+        cut = c.rfind(" ", int(len(c) * 0.45), int(len(c) * 0.7))
+        if cut < 100:
+            continue
+        frag = c[:cut].strip()
+        if digits(frag) and digits(frag) != digits(c):
+            pass  # fragment keeps a subset of values — still consistent
+        out.append({
+            "seed_id": f"trunc:{code}:{i}",
+            "gr_code": code,
+            "generator": "augment-truncation",
+            "pairs": [{"premise": c, "hypothesis": frag, "label": "consistent",
+                       "conflict_type": "none", "lang": "mr"}],
+        })
+    return out
+
+
+def hard_neutrals(recs, rng, max_total=250):
+    """Moderate-overlap NEUTRALS: same department, shared template vocabulary,
+    but different subjects — the hard negatives that punish overlap-counting."""
+    out = []
+    by_dept = {}
+    for r in recs:
+        by_dept.setdefault(r["dept_code"], []).append(r)
+    for dept, rs in by_dept.items():
+        rng.shuffle(rs)
+        for i in range(0, len(rs) - 1, 2):
+            if len(out) >= max_total:
+                return out
+            ra, rb = rs[i], rs[i + 1]
+            # different subjects required
+            if jaccard(tokens(ra.get("subject") or "a"), tokens(rb.get("subject") or "b")) > 0.2:
+                continue
+            for ca in ra["clauses"]:
+                if not good_clause(ca):
+                    continue
+                best = None
+                for cb in rb["clauses"]:
+                    if not good_clause(cb):
+                        continue
+                    j = jaccard(tokens(ca), tokens(cb))
+                    if 0.2 <= j <= 0.45:
+                        best = cb
+                        break
+                if best:
+                    out.append({
+                        "seed_id": f"hardneutral:{ra['gr_code']}x{rb['gr_code']}",
+                        "gr_code": ra["gr_code"],
+                        "generator": "mined-neutral-hard",
+                        "pairs": [{"premise": ca, "hypothesis": best,
+                                   "label": "neutral", "conflict_type": "none",
+                                   "lang": "mr"}],
+                    })
+                    break
+    return out
+
+
 def mine_neutrals(recs, rng, max_total=350):
     out = []
     pool = []
@@ -213,10 +284,15 @@ def main():
     print(f"number-swap contradictions: {len(swaps)}", flush=True)
     neutrals = mine_neutrals(recs, rng)
     print(f"mined neutrals: {len(neutrals)}", flush=True)
+    truncs = truncation_consistents(recs, rng)
+    print(f"truncation consistents (high-overlap): {len(truncs)}", flush=True)
+    hardn = hard_neutrals(recs, rng)
+    print(f"hard neutrals (moderate-overlap): {len(hardn)}", flush=True)
+    rows = swaps + neutrals + truncs + hardn
     with OUT.open("w", encoding="utf-8") as f:
-        for rec in swaps + neutrals:
+        for rec in rows:
             f.write(json.dumps(rec, ensure_ascii=False) + "\n")
-    print(f"wrote {len(swaps) + len(neutrals)} training records -> {OUT}", flush=True)
+    print(f"wrote {len(rows)} training records -> {OUT}", flush=True)
 
 
 if __name__ == "__main__":
