@@ -6,8 +6,11 @@ __pycache__/
 *.pyc
 model/
 *.zip
-data/*_log.txt
-data/*_err.txt
+data/*_log*.txt
+data/*_err*.txt
 data/zeroshot_*.txt
+data/warm_*.txt
+data/relabel_*.txt
+data/bulk_*.txt
 data/corpus_partial.jsonl
 .claude/
