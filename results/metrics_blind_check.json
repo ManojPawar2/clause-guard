@@ -1,0 +1,142 @@
+{
+  "n_pairs": 50,
+  "n_judged": 50,
+  "n_unjudgeable": 0,
+  "agreement": 0.66,
+  "per_label": {
+    "consistent": {
+      "n": 17,
+      "agreement": 0.5294
+    },
+    "contradiction": {
+      "n": 17,
+      "agreement": 0.5294
+    },
+    "neutral": {
+      "n": 16,
+      "agreement": 0.9375
+    }
+  },
+  "disagreements": [
+    {
+      "n": 3,
+      "dataset_label": "consistent",
+      "human_label": "contradiction",
+      "generator": "ollama:llama3.1",
+      "min_readability": 1.0
+    },
+    {
+      "n": 6,
+      "dataset_label": "neutral",
+      "human_label": "contradiction",
+      "generator": "mined-neutral",
+      "min_readability": 0.842
+    },
+    {
+      "n": 8,
+      "dataset_label": "contradiction",
+      "human_label": "neutral",
+      "generator": "ollama:llama3.1",
+      "min_readability": 1.0
+    },
+    {
+      "n": 12,
+      "dataset_label": "consistent",
+      "human_label": "contradiction",
+      "generator": "ollama:llama3.1",
+      "min_readability": 1.0
+    },
+    {
+      "n": 14,
+      "dataset_label": "contradiction",
+      "human_label": "neutral",
+      "generator": "ollama:llama3.1",
+      "min_readability": 1.0
+    },
+    {
+      "n": 17,
+      "dataset_label": "contradiction",
+      "human_label": "consistent",
+      "generator": "augment-numswap",
+      "min_readability": 1.0
+    },
+    {
+      "n": 20,
+      "dataset_label": "contradiction",
+      "human_label": "neutral",
+      "generator": "ollama:llama3.1",
+      "min_readability": 1.0
+    },
+    {
+      "n": 22,
+      "dataset_label": "consistent",
+      "human_label": "contradiction",
+      "generator": "ollama:llama3.1",
+      "min_readability": 1.0
+    },
+    {
+      "n": 27,
+      "dataset_label": "consistent",
+      "human_label": "neutral",
+      "generator": "ollama:llama3.1",
+      "min_readability": 0.9722
+    },
+    {
+      "n": 28,
+      "dataset_label": "consistent",
+      "human_label": "contradiction",
+      "generator": "ollama:llama3.1",
+      "min_readability": 1.0
+    },
+    {
+      "n": 29,
+      "dataset_label": "consistent",
+      "human_label": "contradiction",
+      "generator": "ollama:llama3.1",
+      "min_readability": 1.0
+    },
+    {
+      "n": 38,
+      "dataset_label": "contradiction",
+      "human_label": "neutral",
+      "generator": "ollama:llama3.1",
+      "min_readability": 1.0
+    },
+    {
+      "n": 39,
+      "dataset_label": "consistent",
+      "human_label": "contradiction",
+      "generator": "ollama:llama3.1",
+      "min_readability": 0.9889
+    },
+    {
+      "n": 44,
+      "dataset_label": "contradiction",
+      "human_label": "neutral",
+      "generator": "ollama:llama3.1",
+      "min_readability": 1.0
+    },
+    {
+      "n": 45,
+      "dataset_label": "contradiction",
+      "human_label": "consistent",
+      "generator": "augment-numswap",
+      "min_readability": 0.8524
+    },
+    {
+      "n": 47,
+      "dataset_label": "consistent",
+      "human_label": "contradiction",
+      "generator": "ollama:llama3.1",
+      "min_readability": 1.0
+    },
+    {
+      "n": 48,
+      "dataset_label": "contradiction",
+      "human_label": "neutral",
+      "generator": "ollama:llama3.1",
+      "min_readability": 1.0
+    }
+  ],
+  "protocol": "50 stratified test pairs from the readable subset (make_blind_check.py); human blind to labels; '?' counted separately, never guessed"
+}

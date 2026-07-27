@@ -1,0 +1,54 @@
+=== 1_fee_conflict_draft
+    retrieving candidates for clause 1/6
+    retrieving candidates for clause 3/6
+    retrieving candidates for clause 4/6
+    retrieving candidates for clause 5/6
+    retrieving candidates for clause 6/6
+    MuRIL screening 30 pairs (fine-tuned, local)
+    extracting values for pair 1/3
+    extracting values for pair 2/3
+    extracting values for pair 3/3
+    explaining flagged conflict
+    clauses=6 pairs=30 conflicts=1 (12s)
+    CONFLICT vs 202407191857335408: For शिक्षण शुल्काची प्रतिपूर्ती, the draft specifies '50 टक्के' but the existing GR specifies '100 ट
+=== 2_stale_reference_draft
+    retrieving candidates for clause 1/6
+    retrieving candidates for clause 2/6
+    retrieving candidates for clause 4/6
+    retrieving candidates for clause 5/6
+    retrieving candidates for clause 6/6
+    MuRIL screening 30 pairs (fine-tuned, local)
+    clauses=6 pairs=30 conflicts=0 (4s)
+=== 3_broken_format_draft
+    retrieving candidates for clause 1/2
+    retrieving candidates for clause 2/2
+    MuRIL screening 12 pairs (fine-tuned, local)
+    clauses=2 pairs=12 conflicts=0 (1s)
+=== 3_broken_format_FIXED
+    retrieving candidates for clause 1/8
+    retrieving candidates for clause 3/8
+    retrieving candidates for clause 4/8
+    retrieving candidates for clause 5/8
+    retrieving candidates for clause 6/8
+    retrieving candidates for clause 7/8
+    MuRIL screening 31 pairs (fine-tuned, local)
+    extracting values for pair 1/15
+    extracting values for pair 2/15
+    extracting values for pair 3/15
+    explaining flagged conflict
+    extracting values for pair 4/15
+    explaining flagged conflict
+    extracting values for pair 5/15
+    extracting values for pair 6/15
+    extracting values for pair 7/15
+    extracting values for pair 8/15
+    extracting values for pair 9/15
+    extracting values for pair 10/15
+    extracting values for pair 11/15
+    extracting values for pair 12/15
+    extracting values for pair 13/15
+    extracting values for pair 14/15
+    extracting values for pair 15/15
+    clauses=8 pairs=31 conflicts=2 (10s)
+    CONFLICT vs 202403271818429322: For disbursing stipend through DBT, the draft specifies 'directly through the MahaDBT portal to Aadh
+    CONFLICT vs 202302091813048908: For disbursing stipend, the draft specifies 'directly through MahaDBT portal to Aadhaar-linked bank 

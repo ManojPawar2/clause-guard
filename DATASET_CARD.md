@@ -42,8 +42,15 @@ consistents, mined neutrals) — the exact provenance is recorded per pair in th
   sampler: `src/finetune/make_blind_check.py`) is reported in EVAL_TABLE.md.
 
 ## Known limitations (read this before trusting the numbers)
-1. **All labels are LLM-generated.** A human spot-check of a random subset is reported
-   where available; there was no legal-expert review.
+1. **All labels are LLM-generated, and we measured how wrong they are.** A 50-pair
+   human blind check (readable subset) + independent blind adjudication of every
+   disagreement puts **label noise at ~26%** in that sample — mostly the 8B
+   generator's contradiction/consistent labels (polarity-reversed "restatements",
+   off-topic "contradictions"); neutral labels ≈ 6% noise. The model scores 0.92
+   against its own labels on those pairs but **0.70 against adjudicated truth** —
+   both numbers are reported (EVAL_TABLE.md, "Label quality"). There was no
+   legal-expert review. A validated cross-family relabeling of the test set is in
+   progress (`relabel_test_gemini.py`).
 2. **Shared provenance**: all LLM pairs come from a single generator (llama3.1-8B),
    so the Groq Llama-3.3 judge shares the generator's model family (contaminated
    cell), while the Gemini judge shares no family with it (cross-family cell). The

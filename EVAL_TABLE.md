@@ -13,9 +13,31 @@
 | Zero-shot local Llama-3.1-8B (Ollama, RTX 2050) | 0.499 (over 468/563 judged; 95 batches unparseable — see note 3) | — | — | — | ~15–30 s | — | $0 |
 | TF-IDF + LogReg lexical baseline (fit on train, scored on test) | 0.7754 | — | — | — | <1 ms | — | $0 |
 
-**Human agreement (readable subset)**: _pending — 50 stratified test pairs blind-labeled
-by a human (sampler: `src/finetune/make_blind_check.py`; `?` allowed for unjudgeable
-pairs and counted separately)._
+## Label quality — measured, not assumed
+
+A human blind-labeled 50 stratified test pairs from the readable subset
+(`make_blind_check.py`), and every human-vs-dataset disagreement was then judged by an
+independent blind adjudicator seeing only the two clauses (`blind_check_adjudication.json`):
+
+| Measurement | Value |
+|---|---|
+| Raw human ↔ dataset-label agreement | 0.66 (94% on neutral; ~53% on the C/S boundary) |
+| Adjudication of the 17 disputes | 12 sided with the human · 4 with the dataset · 1 neither |
+| **Dataset label noise (readable sample)** | **~26%** — concentrated in the 8B generator's contradiction/consistent labels; neutral ≈ 6% |
+| Human vs adjudicated truth | 0.90 |
+| **Fine-tuned model vs adjudicated truth** | **0.70** (n=50; vs 0.92 against its own labels on the same pairs) |
+
+Honest implication: the 0.9134 headline measures **fidelity to the synthetic labeling
+function**; adjudicated-truth accuracy on readable pairs is ~0.70. The pipeline is
+designed for exactly this: MuRIL only *screens* candidates (its cleanest class,
+neutral-rejection, is what screening uses), and every flag still passes the
+extraction-verify stage where code compares the actual values before anything is
+called a conflict. Full numbers: `results/metrics_blind_check.json`,
+`results/metrics_blind_truth.json`.
+
+**In progress**: cross-family test-set relabeling (Gemini, validated at 0.93 agreement
+with adjudicated truth on the pairs it judged before free-tier quota paused it) — the
+cleaned-test F1 lands in `results/metrics_cleaned_test.json` after quota reset.
 
 ## Notes (read before quoting the numbers)
 

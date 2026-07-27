@@ -1,0 +1,23 @@
+{
+  "protocol": "each of the 17 human-vs-dataset disagreements judged by an independent blind adjudicator (LLM, high effort) seeing only the two clauses and the labeling rubric — never the dataset or human label",
+  "date": "2026-07-27",
+  "adjudications": [
+    {"n": 3, "label": "contradiction", "confidence": "high"},
+    {"n": 6, "label": "contradiction", "confidence": "medium"},
+    {"n": 8, "label": "neutral", "confidence": "high"},
+    {"n": 12, "label": "consistent", "confidence": "medium"},
+    {"n": 14, "label": "neutral", "confidence": "medium"},
+    {"n": 17, "label": "contradiction", "confidence": "medium"},
+    {"n": 20, "label": "neutral", "confidence": "high"},
+    {"n": 22, "label": "contradiction", "confidence": "high"},
+    {"n": 27, "label": "contradiction", "confidence": "medium"},
+    {"n": 28, "label": "contradiction", "confidence": "medium"},
+    {"n": 29, "label": "consistent", "confidence": "low"},
+    {"n": 38, "label": "neutral", "confidence": "medium"},
+    {"n": 39, "label": "contradiction", "confidence": "high"},
+    {"n": 44, "label": "neutral", "confidence": "medium"},
+    {"n": 45, "label": "contradiction", "confidence": "high"},
+    {"n": 47, "label": "contradiction", "confidence": "high"},
+    {"n": 48, "label": "neutral", "confidence": "high"}
+  ]
+}

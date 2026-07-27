@@ -1,0 +1,178 @@
+[
+ {
+  "n": 3,
+  "dataset_label": "consistent",
+  "human_label": "contradiction",
+  "generator": "ollama:llama3.1",
+  "premise": "The directors, other than the Director of Technical Education, Maharashtra State, Mumbai, and affiliated colleges shall remain unaffected by any other conditions imposed.",
+  "hypothesis": "2. याखिवाय संचालक, तंत्र खिक्षण, महाराष्ट्र राज्य, मंबु ई व संबंख ित खवद्यापीठ यानं ी घालून खदलेल्या अन्य अटी व िती संबंखित संस्ा / महाखवद्यालयावर बंिनकारक राहतील."
+ },
+ {
+  "n": 6,
+  "dataset_label": "neutral",
+  "human_label": "contradiction",
+  "generator": "mined-neutral",
+  "premise": "4. सदर शासि विणणय वित्त विभागािे मान्यता वदल्यािुसार, वित्त विभागाचा अिौपचावरक संदभ ण क्र.307/2024/व्यय-5, वद.11.03.2024 अन्िये विगणवमत करण्यात येत आहे.",
+  "hypothesis": "4. हा शासन वनणणय, महाराष्ट्र विवनयोजन अवधवनयम 2023, वित्त विभाग, शासन पवरपत्रक क्र.अथणसुं- 2023/प्र.क्र.40/ अथण-3 वि.12.04.2023 अन्िये वनगणवमत करण्यात येत आहे. या शासन वनणणयातील पवरवशष्ट्ट मधील अन क्रमाुंक 9 मध्ये नमूि अटींची पतू णता होत आहे."
+ },
+ {
+  "n": 8,
+  "dataset_label": "contradiction",
+  "human_label": "neutral",
+  "generator": "ollama:llama3.1",
+  "premise": "ाभ देण्यास शैक्षयणक वषब 2024-25 पासनू शासन मान्यता देण्यात येत आहे. तसेच, यासाठी येणाऱ्या रु.906.05 कोटी एवढ्या अयतयरक्त आर्थिक भारास मान्यता देण्यात येत आहे.",
+  "hypothesis": "The state government's approval is required only after the district collector's recommendation instead of the current procedure."
+ },
+ {
+  "n": 12,
+  "dataset_label": "consistent",
+  "human_label": "contradiction",
+  "generator": "ollama:llama3.1",
+  "premise": "2. याखिवाय संचालक, तंत्र खिक्षण, महाराष्ट्र राज्य, मंबु ई व संबंख ित खवद्यापीठ यानं ी घालून खदलेल्या अन्य अटी व िती संबंखित संस्ा / महाखवद्यालयावर बंिनकारक राहतील.",
+  "hypothesis": "The provisions of this clause shall be inapplicable to any institutions/universities except those under the jurisdiction of the Director of Technical Education, Maharashtra State, Mumbai, and their affiliated colleges."
+ },
+ {
+  "n": 14,
+  "dataset_label": "contradiction",
+  "human_label": "neutral",
+  "generator": "ollama:llama3.1",
+  "premise": "४. सदर शनधी राज्य प्रकल्प संचालक, महाराष्ट्र प्राथशमक शिक्षण पशरषद, चनीरोड, मंब ई याचं ेकडे स पूदग करण्यात येत आहे. सदर शनधी आहरीत करून शवतरीत करण्यासाठी अवर सशचव/ कक्ष अशधकारी (रोख िाखा/ लेखा िाखा), िालेय शिक्षण व क्रीडा शवभाग, मंत्रालय, मंब ई यानं ा “आहरण व संशवतरण अशधकारी\" तर सह सशचव/ उप सशचव, िालेय शिक्षण व क्रीडा शवभाग, मंत्रालय, मंब ई यानं ा \"शनयंत्रक अशधकारी\" म्हणनू घोशषत करण्यात येत आहे. संबंधीत आहरण व संशवतरण अशधकारी यानं ी शनधी कोषागारातून आहशरत करून शनधी समग्र शिक्षा याच्ं या बँक खात्यात जमा करावा. राज्य प्रकल्प संचालक, महाराष्ट्र प्राथशमक शिक्षण पशरषद, मंब ई यानं ी सदर शनधी शिक्षण संचालक (प्राथशमक), पण े यानं ा हस्तातं रीत करावा.",
+  "hypothesis": "The Shandhi project scope has been expanded to include not just primary education but also secondary and higher education institutions in rural areas."
+ },
+ {
+  "n": 17,
+  "dataset_label": "contradiction",
+  "human_label": "consistent",
+  "generator": "augment-numswap",
+  "premise": "1. आयुक्त (नशक्षण), महाराष्ट्र राज्य, पणु े अध्यक्ष 2 राज्य प्रकल्प संचालक (समग्र नशक्षा), महाराष्ट्र प्राथनमक नशक्षण सदस्य पनरषद, मंबु ई. 3 संचालक, राज्य शैक्षनणक सशं ोधि व प्रनशक्षण पनरषद, पणु े. सदस्य 4 उप सनचव (नवधी), शालेय नशक्षण व क्रीडा नवभार्, मंत्रालय, मंबु ई. सदस्य 5 सह सनचव/ उप सनचव (व्यय), नवत्त नवभार् , मंत्रालय, मंबु ई. सदस्य 60 सह सनचव/ उप सनचव, नवधी व न्याय नवभार्, मंत्रालय, मंबु ई. सदस्य 7 नशक्षण सचं ालक (प्राथनमक), प्राथनमक नशक्षण सचं ालिालय, पणु े. सनचव",
+  "hypothesis": "1. आयुक्त (नशक्षण), महाराष्ट्र राज्य, पणु े अध्यक्ष 2 राज्य प्रकल्प संचालक (समग्र नशक्षा), महाराष्ट्र प्राथनमक नशक्षण सदस्य पनरषद, मंबु ई. 3 संचालक, राज्य शैक्षनणक सशं ोधि व प्रनशक्षण पनरषद, पणु े. सदस्य 4 उप सनचव (नवधी), शालेय नशक्षण व क्रीडा नवभार्, मंत्रालय, मंबु ई. सदस्य 5 सह सनचव/ उप सनचव (व्यय), नवत्त नवभार् , मंत्रालय, मंबु ई. सदस्य 6 सह सनचव/ उप सनचव, नवधी व न्याय नवभार्, मंत्रालय, मंबु ई. सदस्य 7 नशक्षण सचं ालक (प्राथनमक), प्राथनमक नशक्षण सचं ालिालय, पणु े. सनचव",
+  "digit_check": {
+   "premise_nums": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "60",
+    "7"
+   ],
+   "hyp_nums": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7"
+   ],
+   "differ": true
+  }
+ },
+ {
+  "n": 20,
+  "dataset_label": "contradiction",
+  "human_label": "neutral",
+  "generator": "ollama:llama3.1",
+  "premise": "The deadline for submission of the Shandhi project has been extended from 31st March to 30th June.",
+  "hypothesis": "४. सदर शनधी राज्य प्रकल्प संचालक, महाराष्ट्र प्राथशमक शिक्षण पशरषद, चनीरोड, मंब ई याचं ेकडे स पूदग करण्यात येत आहे. सदर शनधी आहरीत करून शवतरीत करण्यासाठी अवर सशचव/ कक्ष अशधकारी (रोख िाखा/ लेखा िाखा), िालेय शिक्षण व क्रीडा शवभाग, मंत्रालय, मंब ई यानं ा “आहरण व संशवतरण अशधकारी\" तर सह सशचव/ उप सशचव, िालेय शिक्षण व क्रीडा शवभाग, मंत्रालय, मंब ई यानं ा \"शनयंत्रक अशधकारी\" म्हणनू घोशषत करण्यात येत आहे. संबंधीत आहरण व संशवतरण अशधकारी यानं ी शनधी कोषागारातून आहशरत करून शनधी समग्र शिक्षा याच्ं या बँक खात्यात जमा करावा. राज्य प्रकल्प संचालक, महाराष्ट्र प्राथशमक शिक्षण पशरषद, मंब ई यानं ी सदर शनधी शिक्षण संचालक (प्राथशमक), पण े यानं ा हस्तातं रीत करावा."
+ },
+ {
+  "n": 22,
+  "dataset_label": "consistent",
+  "human_label": "contradiction",
+  "generator": "ollama:llama3.1",
+  "premise": "The State Project Coordinator, Maharashtra Primary Education Department, shall transfer the allocated funds to the Director of Accounts and Treasuries (Receipt) or Assistant Director of Accounts and Treasuries (Receipt), as the case may be, who shall receive these funds on behalf of the School Education Department. These officers will then deposit the funds into the School Education Department's bank account.",
+  "hypothesis": "४. सदर शनधी राज्य प्रकल्प संचालक, महाराष्ट्र प्राथशमक शिक्षण पशरषद, चनीरोड, मंब ई याचं ेकडे स पूदग करण्यात येत आहे. सदर शनधी आहरीत करून शवतरीत करण्यासाठी अवर सशचव/ कक्ष अशधकारी (रोख िाखा/ लेखा िाखा), िालेय शिक्षण व क्रीडा शवभाग, मंत्रालय, मंब ई यानं ा “आहरण व संशवतरण अशधकारी\" तर सह सशचव/ उप सशचव, िालेय शिक्षण व क्रीडा शवभाग, मंत्रालय, मंब ई यानं ा \"शनयंत्रक अशधकारी\" म्हणनू घोशषत करण्यात येत आहे. संबंधीत आहरण व संशवतरण अशधकारी यानं ी शनधी कोषागारातून आहशरत करून शनधी समग्र शिक्षा याच्ं या बँक खात्यात जमा करावा. राज्य प्रकल्प संचालक, महाराष्ट्र प्राथशमक शिक्षण पशरषद, मंब ई यानं ी सदर शनधी शिक्षण संचालक (प्राथशमक), पण े यानं ा हस्तातं रीत करावा."
+ },
+ {
+  "n": 27,
+  "dataset_label": "consistent",
+  "human_label": "neutral",
+  "generator": "ollama:llama3.1",
+  "premise": "As per the Maharashtra State Government's Resolution No. C.S.No.-2023/Pr.Cr.40/A-3/Vi.12.04.2023, issued by the Finance Department, it is obligatory to incorporate the specified conditions mentioned in Clause 9 of the said Resolution while preparing the state forest policy.",
+  "hypothesis": "4. हा शासन वनणणय, महाराष्ट्र विवनयोजन अवधवनयम 2023, वित्त विभाग, शासन पवरपत्रक क्र.अथणसुं- 2023/प्र.क्र.40/ अथण-3 वि.12.04.2023 अन्िये वनगणवमत करण्यात येत आहे. या शासन वनणणयातील पवरवशष्ट्ट मधील अन क्रमाुंक 9 मध्ये नमूि अटींची पतू णता होत आहे."
+ },
+ {
+  "n": 28,
+  "dataset_label": "consistent",
+  "human_label": "contradiction",
+  "generator": "ollama:llama3.1",
+  "premise": "All conditions applied to universities/institutions other than those affiliated with the Director of Technical Education, Maharashtra State, Mumbai, shall not apply to them.",
+  "hypothesis": "2. याखिवाय संचालक, तंत्र खिक्षण, महाराष्ट्र राज्य, मंबु ई व संबंख ित खवद्यापीठ यानं ी घालून खदलेल्या अन्य अटी व िती संबंखित संस्ा / महाखवद्यालयावर बंिनकारक राहतील."
+ },
+ {
+  "n": 29,
+  "dataset_label": "consistent",
+  "human_label": "contradiction",
+  "generator": "ollama:llama3.1",
+  "premise": "The Maharashtra Government Order shall be signed digitally by the Chief Minister or any other authorized officer.",
+  "hypothesis": "हा आदेश चडजीटल सवाक्षरीने साक्षांचकत करुन काढण्यात येत आहे. महाराष्ट्र राज्यपाल यांच्या आदेशानुसार व नांवाने. (प्रचवण चशशुपाल) कायासन अचधकारी, महाराष्ट्र शासन प्रत,"
+ },
+ {
+  "n": 38,
+  "dataset_label": "contradiction",
+  "human_label": "neutral",
+  "generator": "ollama:llama3.1",
+  "premise": "४. सदर शनधी राज्य प्रकल्प संचालक, महाराष्ट्र प्राथशमक शिक्षण पशरषद, चनीरोड, मंब ई याचं ेकडे स पूदग करण्यात येत आहे. सदर शनधी आहरीत करून शवतरीत करण्यासाठी अवर सशचव/ कक्ष अशधकारी (रोख िाखा/ लेखा िाखा), िालेय शिक्षण व क्रीडा शवभाग, मंत्रालय, मंब ई यानं ा “आहरण व संशवतरण अशधकारी\" तर सह सशचव/ उप सशचव, िालेय शिक्षण व क्रीडा शवभाग, मंत्रालय, मंब ई यानं ा \"शनयंत्रक अशधकारी\" म्हणनू घोशषत करण्यात येत आहे. संबंधीत आहरण व संशवतरण अशधकारी यानं ी शनधी कोषागारातून आहशरत करून शनधी समग्र शिक्षा याच्ं या बँक खात्यात जमा करावा. राज्य प्रकल्प संचालक, महाराष्ट्र प्राथशमक शिक्षण पशरषद, मंब ई यानं ी सदर शनधी शिक्षण संचालक (प्राथशमक), पण े यानं ा हस्तातं रीत करावा.",
+  "hypothesis": "The State Project Director, Maharashtra Primary Education Department, Pune, will now forward the proposals directly to the Deputy Chief Minister of Maharashtra instead of the State Project Director."
+ },
+ {
+  "n": 39,
+  "dataset_label": "consistent",
+  "human_label": "contradiction",
+  "generator": "ollama:llama3.1",
+  "premise": "४. सदर शनधी राज्य प्रकल्प संचालक, महाराष्ट्र प्राथशमक शिक्षण पशरषद, चनीरोड, मंब ई याचं ेकडे स पूदग करण्यात येत आहे. सदर शनधी आहरीत करून शवतरीत करण्यासाठी अवर सशचव/ कक्ष अशधकारी (रोख िाखा/ लेखा िाखा), िालेय शिक्षण व क्रीडा शवभाग, मंत्रालय, मंब ई यानं ा “आहरण व संशवतरण अशधकारी\" तर सह सशचव/ उप सशचव, िालेय शिक्षण व क्रीडा शवभाग, मंत्रालय, मंब ई यानं ा \"शनयंत्रक अशधकारी\" म्हणनू घोशषत करण्यात येत आहे. संबंधीत आहरण व संशवतरण अशधकारी यानं ी शनधी कोषागारातून आहशरत करून शनधी समग्र शिक्षा याच्ं या बँक खात्यात जमा करावा. राज्य प्रकल्प संचालक, महाराष्ट्र प्राथशमक शिक्षण पशरषद, मंब ई यानं ी सदर शनधी शिक्षण संचालक (प्राथशमक), पण े यानं ा हस्तातं रीत करावा.",
+  "hypothesis": "The State Project Coordinator, Maharashtra Primary Education Department, will transfer the funds to the Treasury Officer of the Ministry of Education, Government of Maharashtra. The Treasury Officer and Assistant Treasurer/Class IV officer of the Ministry of Education, Government of Maharashtra, and the Director of Accounts and Treasuries (Receipt) and Assistant Director of Accounts and Treasuries (Receipt), respectively, shall be notified as 'Receiving Officers' and 'Treasury Officers', respectively. These officers will receive the funds from the State Project Coordinator's treasury account and deposit them into the School Education Department's bank account."
+ },
+ {
+  "n": 44,
+  "dataset_label": "contradiction",
+  "human_label": "neutral",
+  "generator": "ollama:llama3.1",
+  "premise": "ाभ देण्यास शैक्षयणक वषब 2024-25 पासनू शासन मान्यता देण्यात येत आहे. तसेच, यासाठी येणाऱ्या रु.906.05 कोटी एवढ्या अयतयरक्त आर्थिक भारास मान्यता देण्यात येत आहे.",
+  "hypothesis": "Students who have completed 10th standard are not eligible for the benefits under this scheme, whereas previously they were eligible."
+ },
+ {
+  "n": 45,
+  "dataset_label": "contradiction",
+  "human_label": "consistent",
+  "generator": "augment-numswap",
+  "premise": "शासन वनणवय क्रमाांकः सांकीणव-2024/प्र.क्र.217/एसडी-4 शासन वनणवय :- राज्यातील सव व माध्यमाांच्या व सव व व्यवस्थापनाच्या शाळाांमध्ये सन 2024-25 या वर्षात “महावाचन उत्सव-2024” हा उपक्रम वरड इांवडया सेवलब्रेशन याांच्या सहकायाने राबववण्यास या शासन वनणवयाद्वारे मान्यता देण्यात येत आहे. या उपक्रमाकवरता ज्येष्ट्ठ अवभनेते श्री. अवमताभ बच्चन याचां ी ब्रँड ॲम्बसे ेडर म्हणनू वनवड करण्यास देखील शासनाची मान्यता प्रदान करण्यात येत आहे. सदर उपक्रमाचा तपशील खालीलप्रमाणे आहे:-",
+  "hypothesis": "शासन वनणवय क्रमाांकः सांकीणव-2024/प्र.क्र.217/एसडी-4 शासन वनणवय :- राज्यातील सव व माध्यमाांच्या व सव व व्यवस्थापनाच्या शाळाांमध्ये सन 2024-80 या वर्षात “महावाचन उत्सव-2024” हा उपक्रम वरड इांवडया सेवलब्रेशन याांच्या सहकायाने राबववण्यास या शासन वनणवयाद्वारे मान्यता देण्यात येत आहे. या उपक्रमाकवरता ज्येष्ट्ठ अवभनेते श्री. अवमताभ बच्चन याचां ी ब्रँड ॲम्बसे ेडर म्हणनू वनवड करण्यास देखील शासनाची मान्यता प्रदान करण्यात येत आहे. सदर उपक्रमाचा तपशील खालीलप्रमाणे आहे:-",
+  "digit_check": {
+   "premise_nums": [
+    "2024",
+    "2024",
+    "2024",
+    "217",
+    "25",
+    "4"
+   ],
+   "hyp_nums": [
+    "2024",
+    "2024",
+    "2024",
+    "217",
+    "4",
+    "80"
+   ],
+   "differ": true
+  }
+ },
+ {
+  "n": 47,
+  "dataset_label": "consistent",
+  "human_label": "contradiction",
+  "generator": "ollama:llama3.1",
+  "premise": "४. सदर शनधी राज्य प्रकल्प संचालक, महाराष्ट्र प्राथशमक शिक्षण पशरषद, चनीरोड, मंब ई याचं ेकडे स पूदग करण्यात येत आहे. सदर शनधी आहरीत करून शवतरीत करण्यासाठी अवर सशचव/ कक्ष अशधकारी (रोख िाखा/ लेखा िाखा), िालेय शिक्षण व क्रीडा शवभाग, मंत्रालय, मंब ई यानं ा “आहरण व संशवतरण अशधकारी\" तर सह सशचव/ उप सशचव, िालेय शिक्षण व क्रीडा शवभाग, मंत्रालय, मंब ई यानं ा \"शनयंत्रक अशधकारी\" म्हणनू घोशषत करण्यात येत आहे. संबंधीत आहरण व संशवतरण अशधकारी यानं ी शनधी कोषागारातून आहशरत करून शनधी समग्र शिक्षा याच्ं या बँक खात्यात जमा करावा. राज्य प्रकल्प संचालक, महाराष्ट्र प्राथशमक शिक्षण पशरषद, मंब ई यानं ी सदर शनधी शिक्षण संचालक (प्राथशमक), पण े यानं ा हस्तातं रीत करावा.",
+  "hypothesis": "The State Project Coordinator of the Maharashtra Primary Education Department is authorized to transfer funds to the Treasury Officer responsible for receiving and accounting for these funds. The Treasury Officer will then be responsible for crediting these funds to the School Education Department's bank account."
+ },
+ {
+  "n": 48,
+  "dataset_label": "contradiction",
+  "human_label": "neutral",
+  "generator": "ollama:llama3.1",
+  "premise": "४. सदर शनधी राज्य प्रकल्प संचालक, महाराष्ट्र प्राथशमक शिक्षण पशरषद, चनीरोड, मंब ई याचं ेकडे स पूदग करण्यात येत आहे. सदर शनधी आहरीत करून शवतरीत करण्यासाठी अवर सशचव/ कक्ष अशधकारी (रोख िाखा/ लेखा िाखा), िालेय शिक्षण व क्रीडा शवभाग, मंत्रालय, मंब ई यानं ा “आहरण व संशवतरण अशधकारी\" तर सह सशचव/ उप सशचव, िालेय शिक्षण व क्रीडा शवभाग, मंत्रालय, मंब ई यानं ा \"शनयंत्रक अशधकारी\" म्हणनू घोशषत करण्यात येत आहे. संबंधीत आहरण व संशवतरण अशधकारी यानं ी शनधी कोषागारातून आहशरत करून शनधी समग्र शिक्षा याच्ं या बँक खात्यात जमा करावा. राज्य प्रकल्प संचालक, महाराष्ट्र प्राथशमक शिक्षण पशरषद, मंब ई यानं ी सदर शनधी शिक्षण संचालक (प्राथशमक), पण े यानं ा हस्तातं रीत करावा.",
+  "hypothesis": "All government schools in Maharashtra are eligible to receive funding under the Shandhi project, not just those with a certain rating."
+ }
+]

@@ -1,0 +1,32 @@
+{
+  "n_pairs": 50,
+  "model_vs_dataset_labels": 0.92,
+  "model_vs_human_labels": 0.7,
+  "model_vs_adjudicated_truth": 0.7,
+  "human_vs_adjudicated_truth": 0.9,
+  "dataset_vs_adjudicated_truth": 0.74,
+  "label_noise_estimate": 0.26,
+  "per_class_vs_truth": {
+    "contradiction": {
+      "n": 18,
+      "model_acc": 0.5556,
+      "human_acc": 0.8333
+    },
+    "consistent": {
+      "n": 11,
+      "model_acc": 0.9091,
+      "human_acc": 0.8182
+    },
+    "neutral": {
+      "n": 21,
+      "model_acc": 0.7143,
+      "human_acc": 1.0
+    }
+  },
+  "adjudication_split": {
+    "sided_with_human": 12,
+    "sided_with_dataset": 4,
+    "neither": 1
+  },
+  "note": "readable-subset sample (50 stratified test pairs); truth = blind adjudication on the 17 disputes, dataset label on the 33 agreements"
+}
