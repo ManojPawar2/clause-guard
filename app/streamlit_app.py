@@ -124,8 +124,16 @@ with t_conf:
             cap += (f" → fine-tuned MuRIL flagged {r['n_muril_flagged']} "
                     f"→ LLM-verified")
         st.caption(cap)
+        n_err = sum(1 for v in r.get("verdicts", []) if v.get("label") == "error")
+        if n_err:
+            st.error(f"{n_err} of {len(r.get('verdicts', []))} pair verifications "
+                     f"failed (LLM errors) — results are incomplete.")
         if not r["conflicts"]:
-            st.success("No conflicts flagged against the indexed corpus.")
+            if n_err:
+                st.warning("No conflicts confirmed, but verification was incomplete — "
+                           "not a clean pass.")
+            else:
+                st.success("No conflicts flagged against the indexed corpus.")
         for c in r["conflicts"]:
             m = c["meta"]
             with st.container(border=True):

@@ -104,12 +104,12 @@ def _gemini(prompt, temperature, max_tokens, json_mode):
         f"{GEMINI_MODEL}:generateContent?key={key}"
     )
     gc = {"temperature": temperature, "maxOutputTokens": max_tokens}
+    # Gemini 3 spends output budget on internal thinking; on hard inputs it can
+    # exhaust max_tokens before emitting any text — for JSON *and* prose calls.
+    # Gemini 3 models take thinkingLevel, not thinkingBudget (that's a 400 now).
+    gc["thinkingConfig"] = {"thinkingLevel": "low"}
     if json_mode:
         gc["responseMimeType"] = "application/json"
-        # Gemini 3 spends output budget on internal thinking; on hard inputs it
-        # can exhaust max_tokens before emitting any text. Structured-output
-        # calls don't benefit from thinking — turn it off.
-        gc["thinkingConfig"] = {"thinkingBudget": 0}
     data = _post_with_retry(url, {"Content-Type": "application/json"},
                             {"contents": [{"parts": [{"text": prompt}]}],
                              "generationConfig": gc})
@@ -161,12 +161,14 @@ def _ollama(prompt, temperature, max_tokens, json_mode):
 
 
 def llm(prompt, provider="groq", temperature=0.2, max_tokens=2048,
-        json_mode=False, use_cache=True):
+        json_mode=False, use_cache=True, refresh=False):
+    """refresh=True skips the cache READ but still stores the fresh result —
+    use it to overwrite a cached-but-malformed response."""
     if LLM_MODE == "ollama":
         provider, model = "ollama", OLLAMA_MODEL
     else:
         model = GROQ_MODEL if provider == "groq" else GEMINI_MODEL
-    if use_cache:
+    if use_cache and not refresh:
         hit = _cached(provider, model, temperature, prompt)
         if hit is not None:
             return hit

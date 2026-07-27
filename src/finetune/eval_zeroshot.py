@@ -46,13 +46,14 @@ def judge(provider, pairs, batch=5, sleep=4.0):
             for i, p in enumerate(chunk_, 1)
         )
         prompt = JUDGE_PROMPT.format(pairs=listing)
+        t0 = time.monotonic()
         try:
             data = None
             for attempt in (1, 2):
-                # attempt 2 bypasses AND overwrites the cache — a malformed
-                # response must never be replayed from disk
+                # attempt 2 bypasses the cache READ but stores its result —
+                # a malformed response must never be replayed from disk
                 raw = llm(prompt, provider=provider, temperature=0.0,
-                          max_tokens=2048, json_mode=True, use_cache=(attempt == 1))
+                          max_tokens=2048, json_mode=True, refresh=(attempt == 2))
                 m = re.search(r"\{.*\}", raw, re.DOTALL)
                 try:
                     data = json.loads(m.group(0) if m else raw)
@@ -61,13 +62,20 @@ def judge(provider, pairs, batch=5, sleep=4.0):
                     if attempt == 2:
                         raise
             for item in data.get("results", []):
-                idx = s + int(item.get("pair", 0)) - 1
+                try:
+                    pn = int(item.get("pair", 0))
+                except (TypeError, ValueError):
+                    continue  # one bad entry must not void the rest of the batch
+                idx = s + pn - 1
                 lab = str(item.get("label", "")).lower()
-                if 0 <= idx < len(pairs) and lab in ("contradiction", "consistent", "neutral"):
+                # in-batch bounds: a missing/0/global pair id must never write
+                # into another batch's slot (silent misassignment)
+                if s <= idx < s + len(chunk_) and lab in ("contradiction", "consistent", "neutral"):
                     preds[idx] = lab
         except (LLMError, json.JSONDecodeError, ValueError) as e:
             print(f"  batch {s}: {str(e)[:100]}", flush=True)
-        time.sleep(sleep)
+        # cache-replayed batches return in ms with no API hit — skip the pacing sleep
+        time.sleep(sleep if time.monotonic() - t0 > 1.0 else 0.05)
         if (s // batch) % 10 == 0:
             print(f"[{provider}] {s + len(chunk_)}/{len(pairs)}", flush=True)
     return preds

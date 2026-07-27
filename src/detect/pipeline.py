@@ -111,8 +111,12 @@ Output ONLY JSON: {{"same_scheme": true|false, "benefit": "...", "value1": "..."
 
 def _values_conflict(v1: str, v2: str) -> bool:
     """Compare extracted values in code: different digit-content = conflict."""
-    d1 = re.findall(r"[0-9०-९]+(?:[.,][0-9०-९]+)?", v1 or "")
-    d2 = re.findall(r"[0-9०-९]+(?:[.,][0-9०-९]+)?", v2 or "")
+    # strip Indian-grouping commas first ('1,00,000' vs '100000' is the SAME
+    # number, not three different ones)
+    v1 = re.sub(r"(?<=[0-9०-९]),(?=[0-9०-९])", "", v1 or "")
+    v2 = re.sub(r"(?<=[0-9०-९]),(?=[0-9०-९])", "", v2 or "")
+    d1 = re.findall(r"[0-9०-९]+(?:\.[0-9०-९]+)?", v1)
+    d2 = re.findall(r"[0-9०-९]+(?:\.[0-9०-९]+)?", v2)
     tr = str.maketrans("०१२३४५६७८९", "0123456789")
     n1 = {x.translate(tr).replace(",", "") for x in d1}
     n2 = {x.translate(tr).replace(",", "") for x in d2}
@@ -240,7 +244,12 @@ def review_draft(draft_text: str, top_k=6, max_draft_clauses=25, progress=None):
         if v["label"] == "conflict":
             if progress:
                 progress("explaining flagged conflict")
-            expl = explain_conflict(p["draft"], p["candidate"], p["meta"], v["reason"])
+            try:
+                expl = explain_conflict(p["draft"], p["candidate"], p["meta"], v["reason"])
+            except LLMError as e:
+                # a failed explanation must never discard an already-verified
+                # conflict — the code-built reason string stands on its own
+                expl = f"_(LLM explanation unavailable: {e})_"
             conflicts.append({**p, "reason": v["reason"], "explanation": expl})
     return {"n_clauses": len(clauses), "clauses": clauses,
             "n_pairs": len(pairs), "n_muril_flagged": (len(screened) if muril_labels else None),
