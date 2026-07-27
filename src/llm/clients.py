@@ -10,6 +10,7 @@ Design rules (from the build plan):
 import hashlib
 import json
 import os
+import re
 import time
 from pathlib import Path
 
@@ -32,7 +33,7 @@ def _load_env():
 
 _load_env()  # must run BEFORE the model constants read os.environ
 
-GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
+GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-flash-latest")
 GROQ_MODEL = os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile")
 # LLM_MODE=ollama routes EVERY call to a local Ollama server (testing without
 # API keys); delete the line from .env to switch back to Gemini/Groq. The disk
@@ -82,6 +83,8 @@ def _post_with_retry(url, headers, payload, tries=4):
             last = f"HTTP {r.status_code}: {r.text[:300]}"
             if r.status_code in (400, 401, 403, 404):
                 break  # non-retryable
+            if r.status_code == 429 and re.search(r"per\s*day|PerDay", r.text, re.I):
+                break  # daily quota won't clear in seconds — retrying burns more of it
             ra = r.headers.get("retry-after")
             if ra:
                 try:

@@ -38,11 +38,32 @@ def _norm_ref(s: str) -> str:
 def analyze_references(draft_text: str, corpus: list) -> dict:
     """Return citations found in the draft, matched corpus GRs, and stale flags."""
     cites = extract_citations(draft_text)
+
+    # The draft's own header number (before the वाचा/Read block) and its own
+    # footer availability code ("...सांकेतांक <code> असा आहे") are not citations.
+    markers = [i for i in (draft_text.find("वाचा"), draft_text.find("Read")) if i != -1]
+    header_end = min(markers) if markers else 0
+
+    def _is_self_ref(ref):
+        i = draft_text.find(ref)
+        return i != -1 and i < header_end
+
+    def _is_self_code(code):
+        i = draft_text.find(code)
+        if i == -1:
+            return False
+        after = draft_text[i + len(code): i + len(code) + 30]
+        before = draft_text[max(0, i - 60): i]
+        return ("असा आहे" in after) or ("उपलब्ध" in before)
+
+    cites = {"cited_codes": [c for c in cites["cited_codes"] if not _is_self_code(c)],
+             "cited_refs": [r for r in cites["cited_refs"] if not _is_self_ref(r)]}
+
     by_code = {r["gr_code"]: r for r in corpus}
     by_grno = {}
     for r in corpus:
         if r.get("gr_number"):
-            by_grno[_norm_ref(r["gr_number"])] = r
+            by_grno.setdefault(_norm_ref(r["gr_number"]), []).append(r)
 
     linked, unknown = [], []
     for code in cites["cited_codes"]:
@@ -54,11 +75,15 @@ def analyze_references(draft_text: str, corpus: list) -> dict:
         n = _norm_ref(ref)
         hit = None
         # degenerate normals ('' or bare years like '2024') would substring-match
-        # arbitrary GRs — require substance on BOTH sides before fuzzy matching
+        # arbitrary GRs — require substance on BOTH sides before fuzzy matching.
+        # Garbled Marathi gr_numbers normalise to bare digits (year+file-no) that
+        # collide across GRs: require an alpha char or >=10 chars on the corpus
+        # side, and never link into a collision group.
         if len(n) >= 6:
-            for k, r in by_grno.items():
-                if len(k) >= 6 and (k in n or n in k):
-                    hit = r
+            for k, rs in by_grno.items():
+                solid = len(k) >= 6 and (any(c.isalpha() for c in k) or len(k) >= 10)
+                if solid and len(rs) == 1 and (k in n or n in k):
+                    hit = rs[0]
                     break
         if hit:
             linked.append({"cited": ref, "match": hit, "via": "gr-number"})
@@ -78,8 +103,11 @@ def analyze_references(draft_text: str, corpus: list) -> dict:
                 continue
             cited_here = code in r.get("cited_codes", [])
             if not cited_here and m.get("gr_number"):
-                cited_here = any(
-                    _norm_ref(m["gr_number"]) == _norm_ref(x) for x in r.get("cited_refs", [])
+                mn = _norm_ref(m["gr_number"])
+                # empty/short normals (355 corpus gr_numbers normalise to '')
+                # must never satisfy this equality
+                cited_here = len(mn) >= 6 and any(
+                    mn == _norm_ref(x) for x in r.get("cited_refs", [])
                 )
             if cited_here:
                 blob = " ".join(r.get("clauses", []))[:20000].lower()

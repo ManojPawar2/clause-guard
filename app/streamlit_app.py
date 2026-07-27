@@ -157,7 +157,7 @@ with t_refs:
         c1, c2, c3 = st.columns(3)
         c1.metric("Citations found", refs["n_citations"])
         c2.metric("Linked to corpus", len(refs["linked"]))
-        c3.metric("Stale / superseded", len(refs["stale"]))
+        c3.metric("Explicit supersessions", len(refs["stale"]))
         for s in refs["stale"]:
             st.error(f"⚠️ Cites **{s['cited']}** which appears superseded by "
                      f"`{s['superseded_by']}` — {s.get('successor_subject','')}")

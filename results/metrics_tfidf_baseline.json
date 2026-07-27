@@ -1,0 +1,40 @@
+{
+  "macro_f1": 0.7754,
+  "n_train": 3633,
+  "n_test": 563,
+  "protocol": "fit on pairs_train, scored on pairs_test (protocol-matched with all other eval-table rows)",
+  "config": "TfidfVectorizer(max_features=50000, ngram_range=(1,2), sublinear_tf=True) + LogisticRegression(max_iter=2000)",
+  "report": {
+    "consistent": {
+      "precision": 0.74375,
+      "recall": 0.6878612716763006,
+      "f1-score": 0.7147147147147147,
+      "support": 173.0
+    },
+    "contradiction": {
+      "precision": 0.7351778656126482,
+      "recall": 0.8454545454545455,
+      "f1-score": 0.7864693446088795,
+      "support": 220.0
+    },
+    "neutral": {
+      "precision": 0.88,
+      "recall": 0.7764705882352941,
+      "f1-score": 0.825,
+      "support": 170.0
+    },
+    "accuracy": 0.7761989342806395,
+    "macro avg": {
+      "precision": 0.7863092885375494,
+      "recall": 0.7699288017887134,
+      "f1-score": 0.7753946864411981,
+      "support": 563.0
+    },
+    "weighted avg": {
+      "precision": 0.7815415283033438,
+      "recall": 0.7761989342806395,
+      "f1-score": 0.7760548871396077,
+      "support": 563.0
+    }
+  }
+}

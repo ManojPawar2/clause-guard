@@ -1,0 +1,9 @@
+{
+  "macro_f1_full_test": 0.9134,
+  "n_full": 563,
+  "macro_f1_leakfree_subset": 0.8957,
+  "n_leakfree": 395,
+  "macro_f1_leaky_subset": 0.9578,
+  "n_leaky": 168,
+  "leak_definition": "test row shares a whitespace-normalised premise or hypothesis verbatim with any train premise/hypothesis (no identical full pairs exist)"
+}

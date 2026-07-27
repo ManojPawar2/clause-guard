@@ -6,3 +6,8 @@ __pycache__/
 *.pyc
 model/
 *.zip
+data/*_log.txt
+data/*_err.txt
+data/zeroshot_*.txt
+data/corpus_partial.jsonl
+.claude/
