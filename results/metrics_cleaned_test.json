@@ -1,0 +1,43 @@
+{
+  "relabeler_validation_agreement": 0.88,
+  "n_scored": 287,
+  "n_test": 563,
+  "n_labels_changed": 64,
+  "macro_f1_vs_cleaned": 0.6975,
+  "macro_f1_vs_original_same_subset": 0.8851,
+  "original_vs_cleaned_agreement": 0.777,
+  "report_vs_cleaned": {
+    "consistent": {
+      "precision": 0.7045454545454546,
+      "recall": 0.775,
+      "f1-score": 0.7380952380952381,
+      "support": 80.0
+    },
+    "contradiction": {
+      "precision": 0.49572649572649574,
+      "recall": 0.725,
+      "f1-score": 0.5888324873096447,
+      "support": 80.0
+    },
+    "neutral": {
+      "precision": 0.975609756097561,
+      "recall": 0.6299212598425197,
+      "f1-score": 0.7655502392344498,
+      "support": 127.0
+    },
+    "accuracy": 0.6968641114982579,
+    "macro avg": {
+      "precision": 0.7252939021231705,
+      "recall": 0.7099737532808398,
+      "f1-score": 0.6974926548797775,
+      "support": 287.0
+    },
+    "weighted avg": {
+      "precision": 0.7662863938890114,
+      "recall": 0.6968641114982579,
+      "f1-score": 0.7086379735720061,
+      "support": 287.0
+    }
+  },
+  "protocol": "cleaned = Gemini relabels for ollama-generated pairs (relabeler validated vs blind-adjudicated truth), construction labels for numswap/truncation/mined pairs"
+}

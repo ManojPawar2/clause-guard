@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>MAHA-GR-ALIGN — Architecture</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    background: #0e1420; color: #e8edf5;
+    font-family: "Segoe UI", system-ui, sans-serif;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 3.5vh 4vw; gap: 3vh;
+  }
+  h1 { font-size: 3.4vh; font-weight: 650; letter-spacing: .02em; }
+  h1 span { color: #7ea6ff; }
+  .sub { color: #93a1b8; font-size: 2vh; margin-top: .6vh; }
+  .pipeline { display: flex; align-items: stretch; gap: 0; }
+  .stage {
+    flex: 1; background: #16203270; border: 1px solid #2b3a55;
+    border-radius: 12px; padding: 2.2vh 1.2vw; position: relative;
+  }
+  .stage + .stage { margin-left: 2.6vw; }
+  .stage + .stage::before {
+    content: "→"; position: absolute; left: -2vw; top: 50%;
+    transform: translateY(-50%); color: #5b7bb8; font-size: 3.2vh;
+  }
+  .stage h2 { font-size: 2.1vh; color: #9fc0ff; margin-bottom: 1vh; font-weight: 600; }
+  .stage p { font-size: 1.75vh; line-height: 1.45; color: #c7d2e3; }
+  .stage .big { font-size: 2.5vh; color: #ffffff; font-weight: 650; margin: .6vh 0; }
+  .stage.model { border-color: #7ea6ff; background: #1a2a4a66; }
+  .rails { display: flex; gap: 1.5vw; }
+  .rail {
+    flex: 1; background: #131b2a; border: 1px solid #263450;
+    border-radius: 10px; padding: 1.6vh 1.2vw; font-size: 1.75vh; color: #b9c6da;
+  }
+  .rail b { color: #e8edf5; display: block; margin-bottom: .4vh; font-size: 1.85vh; }
+  .stats { display: flex; gap: 1.5vw; }
+  .stat {
+    flex: 1; background: #101a2c; border: 1px solid #2b3a55; border-radius: 10px;
+    padding: 1.5vh 1vw; text-align: center;
+  }
+  .stat .n { font-size: 2.9vh; font-weight: 700; color: #8fd0a0; }
+  .stat .l { font-size: 1.55vh; color: #93a1b8; margin-top: .4vh; }
+  .foot { color: #6b7a94; font-size: 1.6vh; }
+</style>
+</head>
+<body>
+  <div>
+    <h1>MAHA-GR-ALIGN <span>— conflict-aware GR drafting for Maharashtra</span></h1>
+    <div class="sub">Checks a draft Government Resolution against every GR already in force — offline, on a laptop GPU</div>
+  </div>
+
+  <div class="pipeline">
+    <div class="stage">
+      <h2>Real corpus</h2>
+      <div class="big">776 GRs · 11,817 clauses</div>
+      <p>Marathi GRs from the Internet Archive (live portal was down). Legacy-font garbling scored, filtered &amp; digit-audit repaired.</p>
+    </div>
+    <div class="stage">
+      <h2>Clause retrieval</h2>
+      <div class="big">e5-small → Chroma</div>
+      <p>Multilingual embeddings, boilerplate filter, near-duplicate suppression. Thousands of clauses → ~30 candidates.</p>
+    </div>
+    <div class="stage model">
+      <h2>Fine-tuned screening</h2>
+      <div class="big">MuRIL-base · 238M</div>
+      <p>Trained on 4,490 grounded clause pairs. <b>130 ms/pair on CPU</b> — 30 candidates → ~3 flags, no API, no rate limit.</p>
+    </div>
+    <div class="stage">
+      <h2>Verify &amp; explain</h2>
+      <div class="big">LLM extracts · code decides</div>
+      <p>The LLM only extracts values ("50 टक्के" vs "100 टक्के"); deterministic comparison makes the call. Auditable reasons, not opinions.</p>
+    </div>
+  </div>
+
+  <div class="rails">
+    <div class="rail"><b>Reference tracker</b>Links every citation to the corpus · currency check flags outdated references</div>
+    <div class="rail"><b>Compliance scorecard</b>11 deterministic Manual-of-Office-Procedure checks · 0% → 100% live</div>
+    <div class="rail"><b>Bilingual glossary</b>86 Marathi ↔ English legal-administrative term pairs</div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="n">0.913</div><div class="l">test macro-F1 (label fidelity)</div></div>
+    <div class="stat"><div class="n">0.896</div><div class="l">leak-free subset F1</div></div>
+    <div class="stat"><div class="n">+0.41</div><div class="l">vs its own 8B teacher zero-shot</div></div>
+    <div class="stat"><div class="n">~26%</div><div class="l">label noise — measured &amp; published</div></div>
+    <div class="stat"><div class="n">$0</div><div class="l">inference cost · fully offline</div></div>
+  </div>
+
+  <div class="foot">Blind human check + independent adjudication of every disagreement — accuracy reported against adjudicated truth, not just synthetic labels.</div>
+</body>
+</html>

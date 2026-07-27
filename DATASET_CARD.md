@@ -49,8 +49,9 @@ consistents, mined neutrals) — the exact provenance is recorded per pair in th
    off-topic "contradictions"); neutral labels ≈ 6% noise. The model scores 0.92
    against its own labels on those pairs but **0.70 against adjudicated truth** —
    both numbers are reported (EVAL_TABLE.md, "Label quality"). There was no
-   legal-expert review. A validated cross-family relabeling of the test set is in
-   progress (`relabel_test_gemini.py`).
+   legal-expert review. A validated cross-family relabeling (`relabel_test_gemini.py`,
+   Gemini at 0.88 vs adjudicated truth) independently confirms the estimate:
+   0.6975 vs cleaned labels on 287 pairs vs 0.8851 vs the originals on the same subset.
 2. **Shared provenance**: all LLM pairs come from a single generator (llama3.1-8B),
    so the Groq Llama-3.3 judge shares the generator's model family (contaminated
    cell), while the Gemini judge shares no family with it (cross-family cell). The

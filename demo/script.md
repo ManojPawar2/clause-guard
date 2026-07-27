@@ -14,8 +14,10 @@
 | 3:40–4:00 | Eval + close | Eval table screenshot (fine-tuned vs zero-shot) + repo link | "A fine-tuned MuRIL classifier screens clause pairs at milliseconds per pair — benchmarked against zero-shot LLMs on a held-out set. Code, dataset and eval are in the repo." |
 
 ## Recording checklist
+- [ ] `.env` has `LLM_MODE=ollama` (fully local — quota can't ruin a take) and `ollama serve` is up
 - [ ] `streamlit run app/streamlit_app.py` fresh; sidebar shows corpus stats
-- [ ] Cache warmed: each scenario reviewed at least once before recording
+- [ ] Cache warmed: `python src/detect/warm_cache.py` reports all scenarios green
+- [ ] Architecture slide for the 0:20 beat: open `demo/architecture_slide.html` in a browser tab, F11 fullscreen
 - [ ] Browser zoom 110–125%, hide bookmarks bar
 - [ ] Mic test clip watched back
-- [ ] All three planted drafts load from the sidebar selector
+- [ ] All planted drafts load from the sidebar selector

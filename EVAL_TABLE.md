@@ -35,9 +35,14 @@ extraction-verify stage where code compares the actual values before anything is
 called a conflict. Full numbers: `results/metrics_blind_check.json`,
 `results/metrics_blind_truth.json`.
 
-**In progress**: cross-family test-set relabeling (Gemini, validated at 0.93 agreement
-with adjudicated truth on the pairs it judged before free-tier quota paused it) — the
-cleaned-test F1 lands in `results/metrics_cleaned_test.json` after quota reset.
+**Triangulated with a cross-family relabeler**: Gemini (validated at 0.88 agreement with
+the adjudicated truth) relabeled the LLM-generated test pairs — on the 287 pairs with
+cleaned labels so far (117 construction-correct + 170 relabeled; 64 labels changed) the
+model scores **0.6975 vs cleaned labels** against 0.8851 vs the original labels on the
+same subset. Two independent methods — human blind check (0.70, n=50) and cross-family
+relabeling (0.6975, n=287) — converge on the same honest accuracy estimate.
+Remaining pairs complete after the next free-tier quota window
+(`results/metrics_cleaned_test.json`).
 
 ## Notes (read before quoting the numbers)
 
