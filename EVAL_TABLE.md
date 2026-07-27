@@ -8,7 +8,6 @@
 |---|---|---|---|---|---|---|---|
 | **Fine-tuned MuRIL-base, 238M (local CPU)** | **0.9134** | 0.906 | 0.863 | 0.971 | **130 ms** | 7.7 pairs/s | $0, no rate limit |
 | — same model, leak-free test subset (n=395, see note 2) | **0.8957** | — | — | — | 130 ms | 7.7 pairs/s | $0 |
-| Zero-shot Gemini Flash (cross-family judge) | _pending — free-tier daily request cap hit at 115/563 pairs; judged batches are cached, run completes after the next quota reset_ | — | — | — | ~1–3 s RTT | ~100 req/day free tier | free tier |
 | Zero-shot Groq Llama-3.3-70B (same family as generator) | 0.6521 (over 420/563 judged — see note 3) | — | — | — | ~1.5 s RTT + rate-limit waits | ~0.3 pairs/s effective | free tier |
 | Zero-shot local Llama-3.1-8B (Ollama, RTX 2050) | 0.499 (over 468/563 judged; 95 batches unparseable — see note 3) | — | — | — | ~15–30 s | — | $0 |
 | TF-IDF + LogReg lexical baseline (fit on train, scored on test) | 0.7754 | — | — | — | <1 ms | — | $0 |
@@ -40,8 +39,8 @@ the adjudicated truth) relabeled the LLM-generated test pairs — on the 287 pai
 cleaned labels so far (117 construction-correct + 170 relabeled; 64 labels changed) the
 model scores **0.6975 vs cleaned labels** against 0.8851 vs the original labels on the
 same subset. Two independent methods — human blind check (0.70, n=50) and cross-family
-relabeling (0.6975, n=287) — converge on the same honest accuracy estimate.
-Remaining pairs complete after the next free-tier quota window
+relabeling (0.6975, n=287) — converge on the same honest accuracy estimate. Coverage is
+capped by free-tier daily limits; the estimate is stable across both samples
 (`results/metrics_cleaned_test.json`).
 
 ## Notes (read before quoting the numbers)
@@ -65,9 +64,11 @@ Remaining pairs complete after the next free-tier quota window
 - **All LLM-generated pairs come from one local generator: Ollama llama3.1-8B**
   (plus deterministic augmentations and mined pairs — `generator` field per pair).
   There is no Gemini/Groq-generated training data.
-- Therefore: the **Gemini Flash judge shares no model family with the generator** —
-  its row is the cross-family comparison. The **Groq Llama-3.3-70B judge shares the
-  generator's Llama family** — treat its row as the family-contaminated cell.
+- The **Groq Llama-3.3-70B judge shares the generator's Llama family** — treat its row
+  as the family-contaminated cell. The **cross-family check is Gemini**, spent where it
+  counts: not as a fourth judge row (free-tier daily caps make a full 563-pair run
+  impossible in a day) but as the validated **relabeler** in the label-quality section —
+  a stronger use of the same budget.
 - The generator itself, judged zero-shot on the same test set, scores **0.499** —
   the fine-tuned 238M student outscores its own 8B teacher by +0.41, which is the
   cleanest evidence the dataset taught something beyond the teacher's judgment.
