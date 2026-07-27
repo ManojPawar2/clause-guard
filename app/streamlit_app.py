@@ -19,7 +19,7 @@ for sub in ("llm", "index", "ingest", "detect", "reftrack", "compliance"):
 
 from clients import GEMINI_MODEL, GROQ_MODEL, LLM_MODE, OLLAMA_MODEL  # noqa: E402
 
-st.set_page_config(page_title="MAHA-GR-ALIGN", page_icon="📜", layout="wide")
+st.set_page_config(page_title="ClauseGuard", page_icon="📜", layout="wide")
 
 MURIL_ON = (os.environ.get("USE_MURIL", "1") != "0"
             and (ROOT / "model" / "muril_gr_conflict_fp16" / "config.json").exists())
@@ -33,7 +33,7 @@ st.markdown(
          border:1px solid #2b3a55">
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem">
       <div>
-        <h2 style="margin:0;color:#fff">📜 MAHA-GR-ALIGN</h2>
+        <h2 style="margin:0;color:#fff">📜 ClauseGuard</h2>
         <p style="margin:.15rem 0 0;color:#c9d6ea">Conflict-aware Government Resolution drafting —
         detection · references · compliance · bilingual</p>
       </div>
@@ -306,7 +306,7 @@ with t_about:
         components.html(slide.read_text(encoding="utf-8"), height=560, scrolling=False)
     st.markdown(
         """
-**MAHA-GR-ALIGN** reviews a draft Maharashtra Government Resolution against a corpus of
+**ClauseGuard** (Problem 1: MAHA-GR-ALIGN) reviews a draft Maharashtra Government Resolution against a corpus of
 real GRs (archival copies via the Wayback Machine — the live portal returned 503 during
 the hackathon window).
 

@@ -1,4 +1,4 @@
-# MAHA-GR-ALIGN — submission
+# ClauseGuard — submission
 
 **VJTI AI Hackathon 2026 · "Shaping Digital Governance" · Problem 1 (MAHA-GR-ALIGN)**
 
@@ -7,7 +7,7 @@
 
 ## Pitch (one paragraph)
 
-MAHA-GR-ALIGN reviews a draft Government Resolution against 776 real Maharashtra GRs
+ClauseGuard reviews a draft Government Resolution against 776 real Maharashtra GRs
 (11,817 clauses, built from the Internet Archive while the live portal was down) and
 flags the clause-level conflicts a drafting officer would otherwise miss. Retrieval
 narrows thousands of clauses to ~30 candidates; a fine-tuned MuRIL cross-encoder
