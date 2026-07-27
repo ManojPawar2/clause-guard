@@ -119,7 +119,11 @@ with t_conf:
         st.caption("Needs the Chroma index (`python src/index/build_index.py`) and "
                    "API keys in `.env`.")
     else:
-        st.caption(f"{r['n_clauses']} draft clauses → {r['n_pairs']} candidate pairs screened")
+        cap = f"{r['n_clauses']} draft clauses → {r['n_pairs']} candidate pairs"
+        if r.get("n_muril_flagged") is not None:
+            cap += (f" → fine-tuned MuRIL flagged {r['n_muril_flagged']} "
+                    f"→ LLM-verified")
+        st.caption(cap)
         if not r["conflicts"]:
             st.success("No conflicts flagged against the indexed corpus.")
         for c in r["conflicts"]:

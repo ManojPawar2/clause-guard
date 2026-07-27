@@ -41,6 +41,48 @@ Output ONLY the JSON.
 
 {pairs}"""
 
+# ---- Fine-tuned MuRIL screening layer (the trained model, in the product) ----
+# Classifies every candidate pair locally in ~130 ms; only pairs it flags as
+# contradiction proceed to the LLM extraction-verify + explanation. Set
+# USE_MURIL=0 to fall back to LLM-verifying every pair.
+MURIL_DIR = ROOT / "model" / "muril_gr_conflict_fp16"
+_muril = {"model": None, "tok": None}
+
+
+def muril_available():
+    import os
+    return os.environ.get("USE_MURIL", "1") != "0" and (MURIL_DIR / "config.json").exists()
+
+
+def _muril_load():
+    if _muril["model"] is None:
+        import torch
+        from transformers import AutoModelForSequenceClassification, AutoTokenizer
+        _muril["tok"] = AutoTokenizer.from_pretrained(str(MURIL_DIR))
+        _muril["model"] = AutoModelForSequenceClassification.from_pretrained(
+            str(MURIL_DIR), dtype=torch.float32)
+        _muril["model"].eval()
+    return _muril["model"], _muril["tok"]
+
+
+def muril_screen(pairs, batch_size=16):
+    """Return predicted label per pair from the fine-tuned classifier."""
+    import torch
+    model, tok = _muril_load()
+    labels = []
+    id2label = model.config.id2label
+    with torch.no_grad():
+        for s in range(0, len(pairs), batch_size):
+            batch = pairs[s:s + batch_size]
+            enc = tok([p["draft"][:1000] for p in batch],
+                      [p["candidate"][:1000] for p in batch],
+                      truncation=True, max_length=256, padding=True,
+                      return_tensors="pt")
+            out = model(**enc).logits.argmax(-1).tolist()
+            labels += [id2label[i] for i in out]
+    return labels
+
+
 # The screener sometimes states an exclusion rule in its own reason and then
 # flags anyway ("introduces a new benefit not covered by..."). Catch the
 # self-reported exclusions in code and downgrade without wasting a verify call.
@@ -156,15 +198,30 @@ def review_draft(draft_text: str, top_k=6, max_draft_clauses=25, progress=None):
                 continue
             pairs.append({"draft": cl, "draft_idx": ci,
                           "candidate": cand["clause"], "meta": cand})
-    # One reliable stage instead of two flaky ones: extraction-verify EVERY pair.
-    # (Batched judgment screening proved unstable on the local 8B — verdicts
-    # flipped with batch composition. Fact extraction is stable; the conflict
-    # decision itself is made in code by comparing the extracted values.)
+    # Stage 1 (when the trained model is present): MuRIL screens every pair in
+    # milliseconds; only its "contradiction" flags go to the LLM stage. Without
+    # it, every pair is LLM-verified (slower, same end result).
+    screened = pairs
+    muril_labels = None
+    if muril_available():
+        if progress:
+            progress(f"MuRIL screening {len(pairs)} pairs (fine-tuned, local)")
+        try:
+            muril_labels = muril_screen(pairs)
+            screened = [p for p, lab in zip(pairs, muril_labels)
+                        if lab == "contradiction"]
+        except Exception as e:
+            print(f"muril screening unavailable ({e}); LLM-verifying all pairs")
+            screened = pairs
+            muril_labels = None
+
+    # Stage 2: extraction-verify each surviving pair — the LLM extracts facts,
+    # code makes the judgment. (Batched LLM judgment proved unstable on 8B.)
     verdicts = []
     conflicts = []
-    for i, p in enumerate(pairs):
+    for i, p in enumerate(screened):
         if progress:
-            progress(f"extracting values for pair {i + 1}/{len(pairs)}")
+            progress(f"extracting values for pair {i + 1}/{len(screened)}")
         v = {"label": "neutral", "reason": ""}
         try:
             raw = llm_with_fallback(
@@ -185,8 +242,9 @@ def review_draft(draft_text: str, top_k=6, max_draft_clauses=25, progress=None):
                 progress("explaining flagged conflict")
             expl = explain_conflict(p["draft"], p["candidate"], p["meta"], v["reason"])
             conflicts.append({**p, "reason": v["reason"], "explanation": expl})
-    return {"n_clauses": len(clauses), "clauses": clauses, "n_pairs": len(pairs),
-            "verdicts": verdicts, "pairs": pairs, "conflicts": conflicts}
+    return {"n_clauses": len(clauses), "clauses": clauses,
+            "n_pairs": len(pairs), "n_muril_flagged": (len(screened) if muril_labels else None),
+            "verdicts": verdicts, "pairs": screened, "conflicts": conflicts}
 
 
 if __name__ == "__main__":

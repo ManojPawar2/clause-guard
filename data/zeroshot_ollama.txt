@@ -1,2 +1,29 @@
 === zero-shot ollama-local on 563 pairs (sleep 1.0s)
 [ollama] 5/563
+  batch 30: Expecting ',' delimiter: line 1 column 205 (char 204)
+[ollama] 55/563
+  batch 55: Expecting ',' delimiter: line 1 column 186 (char 185)
+  batch 80: Expecting ',' delimiter: line 1 column 202 (char 201)
+  batch 100: Expecting ',' delimiter: line 1 column 205 (char 204)
+[ollama] 105/563
+  batch 140: Expecting ',' delimiter: line 1 column 205 (char 204)
+[ollama] 155/563
+  batch 175: Expecting ',' delimiter: line 1 column 195 (char 194)
+[ollama] 205/563
+  batch 205: Expecting ',' delimiter: line 1 column 199 (char 198)
+  batch 215: Expecting ',' delimiter: line 1 column 192 (char 191)
+  batch 230: Expecting ',' delimiter: line 1 column 202 (char 201)
+  batch 235: Expecting ',' delimiter: line 1 column 199 (char 198)
+  batch 240: Expecting ',' delimiter: line 1 column 205 (char 204)
+[ollama] 255/563
+[ollama] 305/563
+  batch 305: Expecting ',' delimiter: line 1 column 45 (char 44)
+[ollama] 355/563
+  batch 400: Expecting ',' delimiter: line 1 column 189 (char 188)
+[ollama] 405/563
+  batch 420: Expecting ',' delimiter: line 1 column 199 (char 198)
+  batch 435: Expecting ',' delimiter: line 1 column 198 (char 197)
+[ollama] 455/563
+[ollama] 505/563
+[ollama] 555/563
+ollama-local: macro-F1=0.4991 (judged 468/563) by-gen={'ollama:llama3.1': 0.5384} -> C:\Users\samay\projects\maha-gr-align\results\metrics_zeroshot_ollama-local.json

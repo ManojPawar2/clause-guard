@@ -1,0 +1,41 @@
+{
+  "macro_f1": 0.4991,
+  "n_judged": 468,
+  "n_total": 563,
+  "report": {
+    "consistent": {
+      "precision": 0.5364238410596026,
+      "recall": 0.5510204081632653,
+      "f1-score": 0.5436241610738255,
+      "support": 147.0
+    },
+    "contradiction": {
+      "precision": 0.48484848484848486,
+      "recall": 0.45977011494252873,
+      "f1-score": 0.471976401179941,
+      "support": 174.0
+    },
+    "neutral": {
+      "precision": 0.47368421052631576,
+      "recall": 0.4897959183673469,
+      "f1-score": 0.4816053511705686,
+      "support": 147.0
+    },
+    "accuracy": 0.49786324786324787,
+    "macro avg": {
+      "precision": 0.4983188454781344,
+      "recall": 0.500195480491047,
+      "f1-score": 0.49906863780811167,
+      "support": 468.0
+    },
+    "weighted avg": {
+      "precision": 0.49754170928796226,
+      "recall": 0.49786324786324787,
+      "f1-score": 0.4975056241564865,
+      "support": 468.0
+    }
+  },
+  "by_generator_macro_f1": {
+    "ollama:llama3.1": 0.5384
+  }
+}
