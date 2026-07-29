@@ -8,7 +8,8 @@
 ## Pitch (one paragraph)
 
 ClauseGuard reviews a draft Government Resolution against 776 real Maharashtra GRs
-(11,817 clauses, built from the Internet Archive while the live portal was down) and
+(11,951 clauses parsed, 11,817 indexed for retrieval; built from the Internet Archive
+while the live portal was down) and
 flags the clause-level conflicts a drafting officer would otherwise miss. Retrieval
 narrows thousands of clauses to ~30 candidates; a fine-tuned MuRIL cross-encoder
 (238M, 130 ms/pair on CPU — no API, no rate limits) screens them to a handful; an LLM
@@ -32,6 +33,12 @@ a laptop GPU.
   truth (~0.70), triangulated by a validated cross-family relabeler (0.6975 on 287
   pairs). The label-noise finding, provenance chain, and all raw artifacts are
   versioned in the repo.
+
+- **Scoped against the SRS, openly**: 14 of the 16 functional requirements are
+  implemented; the audit trail (FR-15) and PDF/DOCX export (FR-16) are named as
+  deliberate boundaries rather than left looking like oversights, and citation-extraction
+  recall is measured against hand-annotated ground truth instead of against our own
+  extractor's output. See the SRS-coverage section in `README.md`.
 
 ## Run it
 

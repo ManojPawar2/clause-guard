@@ -18,6 +18,7 @@ for sub in ("llm", "index", "ingest", "detect", "reftrack", "compliance"):
     sys.path.append(str(ROOT / "src" / sub))
 
 from clients import GEMINI_MODEL, GROQ_MODEL, LLM_MODE, OLLAMA_MODEL  # noqa: E402
+from build_source_urls import links_for  # noqa: E402
 
 st.set_page_config(page_title="ClauseGuard", page_icon="📜", layout="wide")
 
@@ -92,7 +93,9 @@ with st.sidebar:
         n_clauses = sum(len(r.get("clauses", [])) for r in corpus)
         c1, c2 = st.columns(2)
         c1.metric("Real GRs", f"{len(corpus):,}")
-        c2.metric("Clauses", f"{n_clauses:,}")
+        c2.metric("Clauses", f"{n_clauses:,}",
+                  help="Clauses parsed from the corpus. Retrieval indexes at most 60 "
+                       "clauses per GR, so the searchable index is slightly smaller.")
         depts = {}
         for r in corpus:
             depts[r.get("department") or "?"] = depts.get(r.get("department") or "?", 0) + 1
@@ -114,9 +117,30 @@ with st.sidebar:
         # default matches the pipeline / warm-cache default so demo runs stay cached
         top_k = st.slider("Candidates per clause", 2, 8, 6)
 
+def read_upload(f) -> str:
+    """Text of an uploaded draft (FR-13). PDFs reuse pdfplumber — already the
+    corpus parser's dependency, so this adds nothing to requirements."""
+    if f.name.lower().endswith(".pdf"):
+        import pdfplumber
+        with pdfplumber.open(f) as pdf:
+            return "\n\n".join((p.extract_text() or "") for p in pdf.pages).strip()
+    return f.getvalue().decode("utf-8", errors="replace")
+
+
 default_text = ""
 if choice != "—":
     default_text = (ROOT / "data" / "planted" / f"{choice}.txt").read_text(encoding="utf-8")
+
+upload = st.file_uploader("📎 Upload a draft GR — or paste one below",
+                          type=["txt", "md", "pdf"])
+if upload is not None:
+    try:
+        default_text = read_upload(upload)          # an upload overrides the scenario picker
+        if not default_text.strip():
+            st.warning(f"No text layer found in **{upload.name}** — if it is a scanned GR, "
+                       "paste the text instead.")
+    except Exception as e:
+        st.error(f"Could not read {upload.name}: {e}")
 
 draft = st.text_area("Paste / edit the draft GR under review:", value=default_text,
                      height=240, placeholder="Paste a draft Government Resolution here…")
@@ -124,16 +148,16 @@ draft = st.text_area("Paste / edit the draft GR under review:", value=default_te
 run = st.button("🔍 Review draft", type="primary", use_container_width=True,
                 disabled=not draft.strip())
 
-t_conf, t_refs, t_score, t_gloss, t_about = st.tabs(
-    ["⚠️ Conflicts", "🔗 References", "✅ Scorecard", "📖 Glossary", "ℹ️ About"]
-)
-
 if run and draft.strip():
     # Scorecard (always available, deterministic)
     from scorecard import score
     if "score" in st.session_state:  # keep the previous run for the before/after delta
         st.session_state["score_prev"] = st.session_state["score"]
     st.session_state["score"] = score(draft)
+
+    # Terminology (always available, deterministic — FR-8/FR-9)
+    from glossary_check import check_terminology
+    st.session_state["terms"] = check_terminology(draft)
 
     # References (needs corpus)
     if corpus:
@@ -143,7 +167,8 @@ if run and draft.strip():
     # Conflicts (needs index + LLM keys)
     try:
         with st.spinner("Loading retrieval model (first run takes ~30 s)…"):
-            from pipeline import review_draft
+            from pipeline import review_draft, MAX_COSINE_DISTANCE
+        st.session_state["max_distance"] = MAX_COSINE_DISTANCE
         prog = st.progress(0.0, text="analysing…")
         msgs = {"n": 0}
 
@@ -157,21 +182,108 @@ if run and draft.strip():
         st.session_state["review"] = {"error": str(e)}
 
 
+def report_header():
+    """One-glance review report — the four numbers that summarise a run, above
+    the tabs so a single screenshot carries the whole outcome."""
+    s = st.session_state.get("score")
+    if not s:
+        return
+    r = st.session_state.get("review") or {}
+    refs = st.session_state.get("refs") or {}
+    terms = st.session_state.get("terms") or {}
+
+    conflicts = "n/a" if "error" in r else len(r.get("conflicts", []))
+    warnings = len(refs.get("stale", [])) + len(refs.get("newer_related", []))
+    prev = st.session_state.get("score_prev")
+    delta = (f"{s['pct'] - prev['pct']:+d}%" if prev and prev["pct"] != s["pct"] else None)
+
+    st.markdown("##### Review report")
+    k1, k2, k3, k4 = st.columns(4)
+    k1.metric("Verified conflicts", conflicts,
+              help="Clause pairs where extracted values actually disagree")
+    k2.metric("Citation warnings", warnings if refs else "n/a",
+              help="Superseded references + cited GRs with newer same-subject GRs")
+    k3.metric("Template compliance", f"{s['pct']}%", delta,
+              help=f"{len(s['checks'])} Manual-of-Office-Procedure checks")
+    k4.metric("Terminology flags", terms.get("n_flags", "n/a"),
+              help="Non-approved variants and wrong-language terms vs the glossary")
+    st.divider()
+
+
+report_header()
+
+t_conf, t_refs, t_score, t_gloss, t_about = st.tabs(
+    ["⚠️ Conflicts", "🔗 References", "✅ Scorecard", "📖 Glossary", "ℹ️ About"]
+)
+
+
+def source_links(gr_code) -> str:
+    """Markdown links to the source GR — live portal + archival copy (FR-6)."""
+    l = links_for(gr_code)
+    return f"[📄 source PDF]({l['portal']}) · [🕘 archived]({l['archive']})" if l else ""
+
+
+def match_caption(meta: dict) -> str:
+    """Similarity score + source links for a retrieved corpus clause (FR-6).
+
+    The index is cosine-space over normalised embeddings, so `1 - distance`
+    IS the cosine similarity — reported alongside the raw distance and the
+    retrieval cut-off rather than rescaled into a flattering percentage.
+    """
+    bits = []
+    d = meta.get("distance")
+    if d is not None:
+        cut = st.session_state.get("max_distance")
+        tail = f" · cut-off {cut}" if cut else ""
+        bits.append(f"similarity **{1 - d:.3f}** (cosine distance {d:.3f}{tail})")
+    if link := source_links(meta.get("gr_code")):
+        bits.append(link)
+    return "  ·  ".join(bits)
+
+
+# Shared chip styling — one definition for every red/green comparison chip in
+# the app (conflict values, terminology corrections).
+CHIP_ROW = "display:flex;gap:.8rem;align-items:center;flex-wrap:wrap;margin:.4rem 0 .6rem"
+CHIP_BAD = ("background:#3a1520;border:1px solid #8a3a4a;border-radius:10px;"
+            "padding:.45rem 1rem;color:#ff9fb0")
+CHIP_GOOD = ("background:#12301f;border:1px solid #2f5e46;border-radius:10px;"
+             "padding:.45rem 1rem;color:#8fd0a0")
+CHIP_SEP = "color:#93a1b8;font-size:1.2rem"
+
+
+def compare_chips(left_label, left, right_label, right, note=""):
+    """left (problem) vs right (correct) as a chip pair."""
+    tail = f'<span style="color:#7d8ca3;font-size:.85rem">{note}</span>' if note else ""
+    st.markdown(
+        f"""<div style="{CHIP_ROW}">
+        <span style="{CHIP_BAD}">{left_label}<b>{left}</b></span>
+        <span style="{CHIP_SEP}">→</span>
+        <span style="{CHIP_GOOD}">{right_label}<b>{right}</b></span>{tail}
+        </div>""",
+        unsafe_allow_html=True,
+    )
+
+
 def value_chips(reason: str):
     """Render the two extracted values from a code-built reason as compare chips."""
     vals = re.findall(r"'([^']+)'", reason or "")
     if len(vals) < 2:
         return
-    st.markdown(
-        f"""<div style="display:flex;gap:.8rem;align-items:center;margin:.4rem 0 .6rem">
-        <span style="background:#3a1520;border:1px solid #8a3a4a;border-radius:10px;
-              padding:.45rem 1rem;font-size:1.15rem;color:#ff9fb0">draft&nbsp;·&nbsp;<b>{vals[0]}</b></span>
-        <span style="color:#93a1b8;font-size:1.3rem">vs</span>
-        <span style="background:#12301f;border:1px solid #2f5e46;border-radius:10px;
-              padding:.45rem 1rem;font-size:1.15rem;color:#8fd0a0">in&nbsp;force&nbsp;·&nbsp;<b>{vals[1]}</b></span>
-        </div>""",
-        unsafe_allow_html=True,
-    )
+    compare_chips("draft&nbsp;·&nbsp;", vals[0], "in&nbsp;force&nbsp;·&nbsp;", vals[1])
+
+
+def suggested_fix(c: dict) -> str:
+    """Deterministic drafting suggestion built from the extracted values (FR-14).
+
+    Code-built from the same two values the verdict rests on — no extra LLM call,
+    so it is available even when the explanation stage is unavailable.
+    """
+    vals = re.findall(r"'([^']+)'", c.get("reason") or "")
+    if len(vals) < 2:
+        return ""
+    return (f"**Suggested fix** — align the draft to **{vals[1]}**, or keep **{vals[0]}** "
+            f"and add an explicit clause superseding GR "
+            f"`{c['meta'].get('gr_code', '?')}` for this benefit.")
 
 
 with t_conf:
@@ -214,6 +326,8 @@ with t_conf:
             m = c["meta"]
             with st.container(border=True):
                 st.markdown(f"#### 🔴 Conflict with GR `{m.get('gr_code','?')}`")
+                if cap := match_caption(m):
+                    st.caption(cap)
                 value_chips(c["reason"])
                 col1, col2 = st.columns(2)
                 with col1:
@@ -224,6 +338,8 @@ with t_conf:
                                 f"№ `{m.get('gr_number','?')}` · {m.get('date','?')}")
                     st.info(c["candidate"])
                 st.markdown(f"**Why it conflicts:** {c['reason']}")
+                if fix := suggested_fix(c):
+                    st.markdown(fix)
                 with st.expander("📝 Drafting-officer explanation"):
                     st.markdown(c["explanation"])
 
@@ -260,6 +376,8 @@ with t_refs:
                     lc1.markdown(f"`{l['cited'][:60]}`  \n*via {l['via']}*")
                     lc2.markdown(f"**{m.get('department','?')}** · {m.get('date','?')}  \n"
                                  f"{(m.get('subject') or '')[:110]}")
+                    if link := source_links(m.get("gr_code")):
+                        lc2.caption(link)
         if refs["unknown"]:
             with st.expander(f"Unmatched citations ({len(refs['unknown'])})"):
                 for u in refs["unknown"]:
@@ -275,7 +393,7 @@ with t_score:
                  if prev and prev["pct"] != s["pct"] else None)
         st.metric("Template compliance", f"{s['pct']}%", delta,
                   help=f"{s['score']}/{s['max_score']} weighted points — "
-                       "11 deterministic Manual-of-Office-Procedure checks")
+                       f"{len(s['checks'])} deterministic Manual-of-Office-Procedure checks")
         st.progress(s["pct"] / 100)
         fails = [c for c in s["checks"] if not c["passed"]]
         passes = [c for c in s["checks"] if c["passed"]]
@@ -290,6 +408,27 @@ with t_score:
                 st.markdown(f"✅ {c['desc']}  *(weight {c['weight']})*")
 
 with t_gloss:
+    terms = st.session_state.get("terms")
+    if terms:
+        lang = "Marathi" if terms["primary_lang"] == "mr" else "English"
+        if terms["n_flags"]:
+            st.markdown(f"#### 📝 Terminology check — {terms['n_flags']} flag(s) "
+                        f"in this {lang} draft")
+            for f in terms["flags"]:
+                approved = (f["approved_mr"] if terms["primary_lang"] == "mr"
+                            else f["approved_en"])
+                with st.container(border=True):
+                    label = ("non-approved variant" if f["kind"] == "variant"
+                             else "wrong-language term")
+                    compare_chips("", f["found"], "", approved, note=label)
+                    st.caption(f"…{f['context']}…")
+                    if f["note"]:
+                        st.caption(f"ℹ️ {f['note']}")
+        else:
+            st.success(f"No terminology mismatches — every glossary term in this "
+                       f"{lang} draft uses its approved form.")
+        st.divider()
+
     q = st.text_input("🔎 Filter terms (Marathi or English)")
     rows = load_glossary()
     if q:

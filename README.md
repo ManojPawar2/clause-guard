@@ -11,7 +11,8 @@ Reviews a draft GR against a corpus of real Maharashtra GRs and provides:
 2. **Reference tracking** — extracts cited GR numbers/codes, links them to the corpus,
    flags stale (superseded) references, suggests successors.
 3. **Template compliance** — deterministic scorecard against Manual of Office Procedure
-   conventions (header, Read block, preamble, numbered clauses, signature formula, code).
+   conventions (header, Read block, preamble, numbered clauses, financial-sanction block,
+   budget head, signature formula, code).
 4. **Bilingual terminology** — Marathi ↔ English legal/administrative glossary.
 
 ## Corpus note
@@ -65,6 +66,32 @@ correctly — only the extraction mapping is broken — so rendering pages to im
 OCR-ing them recovers clean text and would upgrade the whole corpus at the root.
 
 Evaluation: `EVAL_TABLE.md` · dataset provenance and limitations: `DATASET_CARD.md`.
+
+## SRS coverage (Problem 1 — MAHA-GR-ALIGN)
+
+Against the problem statement's 16 functional requirements:
+
+- **Met** — reference parsing + archive verification (FR-1–3); semantic conflict detection
+  reporting similarity score and source-GR links (FR-4–6); bilingual glossary with
+  mismatch flagging and standard-term suggestions (FR-7–9); Manual-of-Office-Procedure
+  enforcement including the financial-sanction block and budget head (FR-10–12); web
+  dashboard accepting upload or paste (FR-13); side-by-side clause comparison with a
+  code-built suggested fix (FR-14).
+- **Deliberately out of this build** — FR-15 (audit trail of AI suggestions and human
+  edits) and FR-16 (PDF/DOCX export). ClauseGuard is a review tool, not a
+  document-management system. Draft *generation* (§1.2) is out of scope for the same
+  reason: it reviews a draft an officer wrote rather than writing GRs. AC-3 is therefore
+  satisfied as verification — the scorecard proves every mandatory section is present —
+  not as generation.
+- **Dataset divergence** — §6 names `orgpedia/mahGRs` as the primary dataset; we built
+  from the portal itself via the Wayback Machine, §1.3's first-listed source, because the
+  live portal returned 503 throughout the window. The cost of that choice is the
+  legacy-font garble described above (orgpedia's copies are already machine-readable),
+  and OCR remains the documented root-cause fix.
+- **Acceptance criteria** — AC-1 is measured rather than assumed: 100% citation recall on
+  clean drafts, 60% on garbled archive PDFs, against a hand-annotated ground truth
+  (`EVAL_TABLE.md`, `data/citation_ground_truth.json`). AC-2, AC-4 and AC-5 are
+  demonstrated by the four planted scenarios.
 
 ## License
 
