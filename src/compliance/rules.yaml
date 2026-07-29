@@ -38,6 +38,14 @@ rules:
     desc: "Operative part uses numbered clauses (1. 2. ...)"
     regex: "^\\s*\\(?[12][.)]\\s+\\S"
     weight: 1
+  - id: financial_sanction
+    desc: "Financial sanction / expenditure block present"
+    regex: "financial\\s+sanction|sanctioned\\s+expenditure|expenditure\\s+(shall|will|is\\s+to)\\s+be\\s+met|budgetary\\s+provision|आर्थिक\\s*तरतूद|अर्थसंकल्पीय\\s*तरतूद|खर्च[^\\n]{0,60}भागविण्यात"
+    weight: 2
+  - id: budget_head
+    desc: "Budget head present (e.g. 2054-00-101-02)"
+    regex: "\\b[0-9०-९]{4}\\s*-\\s*[0-9०-९]{2}\\s*-\\s*[0-9०-९]{3}(\\s*-\\s*[0-9०-९]{2})?\\b|लेखाशीर्ष"
+    weight: 2
   - id: signature_block
     desc: "Signature block present (By order and in the name of the Governor ...)"
     regex: "By\\s+order\\s+and\\s+in\\s+the\\s+name\\s+of\\s+the\\s+Governor|राज्यपाल"
