@@ -1,0 +1,141 @@
+{
+  "acceptance_criterion": "SRS AC-1 — extract >= 80% of cited references from a GR preamble",
+  "ground_truth": "data/citation_ground_truth.json (hand-annotated, single annotator)",
+  "not_scored_against": "corpus.jsonl cited_codes/cited_refs — produced by the function under test, so scoring on them would be circular",
+  "clean_drafts": {
+    "n_docs": 3,
+    "n_expected": 4,
+    "n_recovered": 4,
+    "recall": 1.0,
+    "n_without_file_number": 0,
+    "per_doc": [
+      {
+        "id": "1_fee_conflict_draft",
+        "expected": 2,
+        "recovered": 2,
+        "letters_excluded": 0,
+        "missed": []
+      },
+      {
+        "id": "2_stale_reference_draft",
+        "expected": 1,
+        "recovered": 1,
+        "letters_excluded": 0,
+        "missed": []
+      },
+      {
+        "id": "3_broken_format_FIXED",
+        "expected": 1,
+        "recovered": 1,
+        "letters_excluded": 0,
+        "missed": []
+      }
+    ]
+  },
+  "archived_grs": {
+    "n_docs": 12,
+    "n_expected": 20,
+    "n_recovered": 12,
+    "recall": 0.6,
+    "n_without_file_number": 3,
+    "per_doc": [
+      {
+        "id": "202205021432456422",
+        "expected": 1,
+        "recovered": 1,
+        "letters_excluded": 0,
+        "missed": []
+      },
+      {
+        "id": "202205091439349822",
+        "expected": 1,
+        "recovered": 0,
+        "letters_excluded": 0,
+        "missed": [
+          "नगर विकास विभाग, शासन निर्णय क्र.एमआरडी-3320/सं.क्र.52/नवि-7, दि.10.09.2020"
+        ]
+      },
+      {
+        "id": "202302161157205108",
+        "expected": 1,
+        "recovered": 1,
+        "letters_excluded": 1,
+        "missed": []
+      },
+      {
+        "id": "202303031444284608",
+        "expected": 1,
+        "recovered": 1,
+        "letters_excluded": 1,
+        "missed": []
+      },
+      {
+        "id": "202303131210240208",
+        "expected": 1,
+        "recovered": 0,
+        "letters_excluded": 2,
+        "missed": [
+          "विभागाचा समक्रमांकाचा दि.25.11.2021 रोजीचा शासन निर्णय (no file number cited)"
+        ]
+      },
+      {
+        "id": "202303141455064708",
+        "expected": 5,
+        "recovered": 2,
+        "letters_excluded": 1,
+        "missed": [
+          "शासन निर्णय उ.व.तं.शि.वि. क्र.IIIT-2013/(23/13)/तांशि-2, दि.22.6.2015",
+          "शासन निर्णय उ.व.तं.शि.वि. क्र.धोरण-2011/(155/14)/तांशि-2, दि.08.12.2015",
+          "शासन निर्णय महसूल व वन विभाग क्र.जमीन-3414/58/प्र.क्र.131/ज-5, दि.24.6.2015"
+        ]
+      },
+      {
+        "id": "202304111653109408",
+        "expected": 1,
+        "recovered": 1,
+        "letters_excluded": 0,
+        "missed": []
+      },
+      {
+        "id": "202401291459552508",
+        "expected": 1,
+        "recovered": 0,
+        "letters_excluded": 1,
+        "missed": [
+          "विभागाचा समक्रमांकाचा दि.31.10.2023 रोजीचा शासन निर्णय (no file number cited)"
+        ]
+      },
+      {
+        "id": "202402271742452721",
+        "expected": 4,
+        "recovered": 2,
+        "letters_excluded": 0,
+        "missed": [
+          "शासन निर्णय, शालेय शिक्षण व क्रीडा विभाग, क्र.पीआई-1094/704(नोंद)/प्राशि-1, दि.14.11.1994",
+          "शासन निर्णय, शालेय शिक्षण व क्रीडा विभाग, समक्रमांक, दि.22.11.2023 व दि.23.01.2024 (no file number cited)"
+        ]
+      },
+      {
+        "id": "202402281407410621",
+        "expected": 1,
+        "recovered": 1,
+        "letters_excluded": 0,
+        "missed": []
+      },
+      {
+        "id": "202402291853417221",
+        "expected": 1,
+        "recovered": 1,
+        "letters_excluded": 1,
+        "missed": []
+      },
+      {
+        "id": "202403011220405021",
+        "expected": 2,
+        "recovered": 2,
+        "letters_excluded": 1,
+        "missed": []
+      }
+    ]
+  }
+}

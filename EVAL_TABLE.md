@@ -43,6 +43,32 @@ relabeling (0.6975, n=287) — converge on the same honest accuracy estimate. Co
 capped by free-tier daily limits; the estimate is stable across both samples
 (`results/metrics_cleaned_test.json`).
 
+## Citation extraction — SRS acceptance criterion 1 (>= 80% of cited references)
+
+Scored against a **hand-annotated** ground truth (`data/citation_ground_truth.json`,
+single annotator, Read/वाचा blocks only). It is deliberately *not* scored against
+`corpus.jsonl`'s `cited_codes`/`cited_refs`: those are the output of the same
+`extract_citations()` under test, so scoring on them would be circular and would
+report ~100% for free.
+
+| Population | Recall | n | AC-1 |
+|---|---|---|---|
+| **Clean drafts** — what the app actually receives (typed, pasted or uploaded) | **100%** | 4/4 refs over 3 drafts | **pass** |
+| **Archived GR PDFs** — first-page text carrying legacy-font garble | **60%** | 12/20 refs over 12 GRs | below target |
+| — same population, before the garble-tolerant pattern | **0%** | 0/20 | — |
+
+The archived-GR row is the corpus-garble story showing up in a second place: the
+reference patterns key on `शासन निर्णय`, which extracts font-specifically corrupted
+(`मनणणय`, `वनणणय`, `शनणणय`, `रिणणय`), so **word-anchored extraction recovers formal
+references from only 6.7% of the 776 corpus GRs** — while 18-digit unique codes,
+being digits, are recovered from 99.1%. `extract_metadata.py` now carries a
+digit-anchored fallback keyed on GR file-number *structure* rather than on any
+word, which takes this population from 0% to 60%; it is applied only where the
+word-anchored patterns find nothing, and is verified to leave clean-draft output
+byte-identical. 3 of the 20 annotated citations name no file number at all
+("this department's GR of dd.mm.yyyy"), so 85% is the ceiling on this sample
+without OCR. Full numbers: `results/metrics_citation_recall.json`.
+
 ## Notes (read before quoting the numbers)
 
 1. **The lexical baseline is protocol-matched**: TF-IDF+LogReg fit on `pairs_train`,

@@ -1,0 +1,73 @@
+{
+  "_annotation": {
+    "purpose": "Ground truth for SRS acceptance criterion 1 — 'given a sample GR preamble, the system correctly extracts at least 80% of cited references'.",
+    "annotator": "single annotator (project author), by reading each document's Read / वाचा block directly from the source PDF's first page",
+    "scope": "the Read/वाचा (preamble reference) block only — the unit named by AC-1",
+    "unit": "one distinct cited DOCUMENT. Where the same file number is cited several times with different dates, it counts once (the extractor's job is to surface the cited document).",
+    "excluded": "letters (पत्र) from officials are recorded as n_letters but excluded from the metric — FR-1 scopes extraction to GRs, circulars and court orders.",
+    "signature": "digit tokens that must ALL appear inside one extracted reference (or code). Digits survive the legacy-font garble verbatim — the same property the corpus repair step's digit audit relies on — so they identify a citation even when every surrounding word is corrupted. `null` = the citation carries no file number at all (cited as 'this department's GR of <date>'), so no signature exists to match.",
+    "CIRCULARITY WARNING": "corpus.jsonl's cited_codes / cited_refs must NOT be used as ground truth here — they are the output of the same extract_citations() under test.",
+    "sampling": "the 12 archived GRs are the first quality_verdict=='clean' corpus GRs (sorted by code) whose PDF is present and contains a Read block — not cherry-picked for extraction success."
+  },
+
+  "clean_drafts": [
+    {"id": "1_fee_conflict_draft", "n_letters": 0, "citations": [
+      {"label": "शासन परिपत्रक, उच्च व तंत्र शिक्षण विभाग, सांकेतांक 202407191857335408, दि.19.07.2024", "signature": ["202407191857335408"]},
+      {"label": "शासन निर्णय क्र.शिष्यवृ-2024/प्र.क्र.105/तासशि-4, दि.08.07.2024", "signature": ["2024", "105"]}
+    ]},
+    {"id": "2_stale_reference_draft", "n_letters": 0, "citations": [
+      {"label": "शासन निर्णय, सामाजिक न्याय व विशेष सहाय्य विभाग, सांकेतांक 202206231214249722, दि.23.06.2022", "signature": ["202206231214249722"]}
+    ]},
+    {"id": "3_broken_format_draft", "n_letters": 0, "citations": []},
+    {"id": "3_broken_format_FIXED", "n_letters": 0, "citations": [
+      {"label": "Government Circular, Higher and Technical Education Department, Unique Code 202407191857335408, dated 19.07.2024", "signature": ["202407191857335408"]}
+    ]}
+  ],
+
+  "archived_grs": [
+    {"gr_code": "202205021432456422", "n_letters": 0, "citations": [
+      {"label": "शासन आदेश क्र. सकआ 2020/प्र.क्र.111/आस्था-2 (cited 3x, three dates)", "signature": ["2020", "111"]}
+    ]},
+    {"gr_code": "202205091439349822", "n_letters": 0, "citations": [
+      {"label": "नगर विकास विभाग, शासन निर्णय क्र.एमआरडी-3320/सं.क्र.52/नवि-7, दि.10.09.2020", "signature": ["3320", "52"]}
+    ]},
+    {"gr_code": "202302161157205108", "n_letters": 1, "citations": [
+      {"label": "शासन निर्णय वित्त विभाग क्र.विअप्र-2013/प्र.क्र.30/2013/विनियम भाग-2, दि.20.09.2019", "signature": ["2013", "30"]}
+    ]},
+    {"gr_code": "202303031444284608", "n_letters": 1, "citations": [
+      {"label": "उच्च व तंत्र शिक्षण विभाग, शासन निर्णय क्र.संकीर्ण 2021/प्र.क्र.६६/शि शि 5, दि.१० डिसेंबर २०२१", "signature": ["2021", "६६"]}
+    ]},
+    {"gr_code": "202303131210240208", "n_letters": 2, "citations": [
+      {"label": "विभागाचा समक्रमांकाचा दि.25.11.2021 रोजीचा शासन निर्णय (no file number cited)", "signature": null}
+    ]},
+    {"gr_code": "202303141455064708", "n_letters": 1, "citations": [
+      {"label": "शासन निर्णय उ.व.तं.शि.वि. क्र.IIIT-2013/(23/13)/तांशि-2, दि.22.6.2015", "signature": ["2013", "23", "13"]},
+      {"label": "शासन निर्णय उ.व.तं.शि.वि. क्र.धोरण-2011/(155/14)/तांशि-2, दि.08.12.2015", "signature": ["2011", "155", "14"]},
+      {"label": "शासन निर्णय महसूल व वन विभाग क्र.जमीन-2014/प्र.क्र.45/ज-8, दि.20.6.2015", "signature": ["2014", "45"]},
+      {"label": "शासन निर्णय महसूल व वन विभाग क्र.जमीन-3414/58/प्र.क्र.131/ज-5, दि.24.6.2015", "signature": ["3414", "58", "131"]},
+      {"label": "शासन परिपत्रक, वित्त विभाग, क्र.अर्थसं-2022/प्र.क्र.43/अर्थ-3, दि.08/02/2023", "signature": ["2022", "43"]}
+    ]},
+    {"gr_code": "202304111653109408", "n_letters": 0, "citations": [
+      {"label": "शासन निर्णय, उ.व.तं.शि.वि., क्र.शुल्क 2015/प्र.क्र.434/15/शि-2, दि.19.1.2016", "signature": ["2015", "434"]}
+    ]},
+    {"gr_code": "202401291459552508", "n_letters": 1, "citations": [
+      {"label": "विभागाचा समक्रमांकाचा दि.31.10.2023 रोजीचा शासन निर्णय (no file number cited)", "signature": null}
+    ]},
+    {"gr_code": "202402271742452721", "n_letters": 0, "citations": [
+      {"label": "शासन निर्णय, शालेय शिक्षण व क्रीडा विभाग, क्र.पीआई-1094/704(नोंद)/प्राशि-1, दि.14.11.1994", "signature": ["1094", "704"]},
+      {"label": "शासन निर्णय क्र.उमाशा-2020/प्र.क्र.13/एसएम-4 (cited 2x, दि.04.06.2020 व दि.29.11.2021)", "signature": ["2020", "13"]},
+      {"label": "शासन परिपत्रक, वित्त विभाग, क्र.अर्थसं-2023/प्र.क्र.40/अर्थ-3, दि.12.04.2023", "signature": ["2023", "40"]},
+      {"label": "शासन निर्णय, शालेय शिक्षण व क्रीडा विभाग, समक्रमांक, दि.22.11.2023 व दि.23.01.2024 (no file number cited)", "signature": null}
+    ]},
+    {"gr_code": "202402281407410621", "n_letters": 0, "citations": [
+      {"label": "शासन निर्णय क्रमांक संकीर्ण-2023/प्र.क्र.25/नोंदणी शाखा, दि.28.11.2023", "signature": ["2023", "25"]}
+    ]},
+    {"gr_code": "202402291853417221", "n_letters": 1, "citations": [
+      {"label": "शासन निर्णय क्र.क्रीडायो-3113/प्र.क्र.45/13/क्रीयुसे-3, दि.21.09.2013", "signature": ["3113", "45", "13"]}
+    ]},
+    {"gr_code": "202403011220405021", "n_letters": 1, "citations": [
+      {"label": "शासन निर्णय क्र.राक्रीधो 1096/प्र.क्र.330/क्रीयुसे-1, दि.31/7/1997", "signature": ["1096", "330"]},
+      {"label": "शासन निर्णय क्र.राक्रीप-1311/प्र.क्र.70/क्रीयुसे-3, दि.4/7/2012", "signature": ["1311", "70"]}
+    ]}
+  ]
+}
