@@ -1,4 +1,7 @@
-# Demo video script (~3.5–4 min)
+# Demo video script (~4–4.5 min)
+
+> Deadline extended to Sun 2 Aug, 10:00 PM IST — the Draft→Export→Audit beat
+> below is now in the main flow (it was optional when time was tight).
 
 > Record with Xbox Game Bar (Win+G) against a WARM LLM cache. Trim in Clipchamp.
 > Do a 2-minute test clip first. Max 2 full takes; take 2 ships.
@@ -11,7 +14,8 @@
 | 2:10–2:50 | **Scenario B — outdated reference** | References tab: citation linked (1/1), yellow **Currency check** warning listing 2 newer same-subject GRs | "The draft funds a 2022 scheme by citing the original GR. The tracker links the citation and warns: two newer GRs exist on the same subject — verify the cited one is still operative. A currency check on every citation, automatically." |
 | 2:50–3:30 | **Scenario C — compliance + terminology** | Broken draft: report header shows **0%** compliance and **3** terminology flags → load the fixed draft: **100%** and **0** flags | "The scorecard runs thirteen Manual-of-Office-Procedure checks — including the financial sanction block and the budget head. The broken draft scores zero and trips three terminology flags. Load the corrected version: one hundred per cent, no flags." |
 | 3:30–3:45 | Terminology beat | Glossary tab on the BROKEN draft — the three red→green correction chips | "Every term is checked against a controlled bilingual glossary. 'Govt. Resolution' should be 'Government Resolution'; 'handicapped' should be 'Person with disability' — the term Government policy actually mandates. It suggests the approved form, not just a warning." |
-| 3:40–4:00 | Eval + close | Eval table screenshot (fine-tuned vs zero-shot) + repo link | "A fine-tuned MuRIL classifier screens clause pairs at milliseconds per pair — benchmarked against zero-shot LLMs on a held-out set. Code, dataset and eval are in the repo." |
+| 3:45–4:15 | **Draft → Export → Audit** (FR-15/16 + §1.2) | Generate tab: AI-assist toggle ON, type the brief → Generate → **100%** compliance chip → Download PDF (open it: shaped Marathi) → Audit tab: the trail with the 50%→100% diff | "ClauseGuard doesn't just review — it drafts. Give it a brief; a local model expands it into the preamble and clauses under a digit audit — no number invented, none dropped — and a deterministic template guarantees every mandatory section: one hundred per cent compliance, Marathi or English. Export the draft or the review report as Word or PDF — with correctly shaped Devanagari. And every suggestion and every human edit lands in a local audit trail." |
+| 4:15–4:30 | Eval + close | Eval table screenshot (fine-tuned vs zero-shot) + repo link | "A fine-tuned MuRIL classifier screens clause pairs at milliseconds per pair — benchmarked against zero-shot LLMs on a held-out set. Code, dataset and eval are in the repo." |
 
 ## Recording checklist
 - [ ] `.env` has `LLM_MODE=ollama` (fully local — quota can't ruin a take) and `ollama serve` is up
@@ -21,3 +25,8 @@
 - [ ] Browser zoom 110–125%, hide bookmarks bar
 - [ ] Mic test clip watched back
 - [ ] All planted drafts load from the sidebar selector
+- [ ] Generate tab: submit the prefilled sample once (instant, deterministic) so the
+      flow is familiar; for the recorded take use AI-assist with the brief — run it once
+      BEFORE recording so the LLM response is cached and the take is instant
+- [ ] Audit tab shows the Scenario A → fixed-draft diff (run A, then the fixed version,
+      before recording); delete `data/audit_trail.jsonl` first for a clean trail
