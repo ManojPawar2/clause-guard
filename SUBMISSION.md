@@ -3,6 +3,7 @@
 **VJTI AI Hackathon 2026 · "Shaping Digital Governance" · Problem 1 (MAHA-GR-ALIGN)**
 
 - **GitHub**: https://github.com/samay-rajput/clause-guard
+- **Live demo**: https://clause-guard.streamlit.app/
 - **Demo video**: `<YouTube unlisted URL — added after recording>`
 
 ## Pitch (one paragraph)

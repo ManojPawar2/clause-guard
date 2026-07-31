@@ -3,6 +3,10 @@
 AI-assisted Government Resolution (GR) drafting for Maharashtra — VJTI AI Hackathon 2026
 ("Shaping Digital Governance", Problem 1: MAHA-GR-ALIGN).
 
+**Live demo**: https://clause-guard.streamlit.app/ (cloud LLM mode; the four sidebar
+demo scenarios are pre-cached — fully local Ollama mode is the recording setup, see
+`DEPLOYMENT.md`).
+
 Drafts and reviews Maharashtra GRs against a corpus of real ones:
 
 1. **Cross-departmental conflict detection** — retrieval narrows candidate clause pairs,

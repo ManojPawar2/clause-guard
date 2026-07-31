@@ -11,7 +11,13 @@ The dataset also carries the warmed LLM disk cache, so the four demo
 scenarios run without spending any provider quota on the deployed host.
 A local dev checkout already has everything on disk -> instant no-op.
 """
+import os
 from pathlib import Path
+
+# hub progress bars use tqdm's class-level lock from worker threads, which
+# newer tqdm releases dropped ("type object 'tqdm' has no attribute '_lock'")
+# - and a Streamlit script run has no terminal to draw on anyway.
+os.environ.setdefault("HF_HUB_DISABLE_PROGRESS_BARS", "1")
 
 ROOT = Path(__file__).resolve().parents[2]
 
