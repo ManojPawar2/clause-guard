@@ -14,11 +14,12 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 ROOT = Path(__file__).resolve().parents[1]
-for sub in ("llm", "index", "ingest", "detect", "reftrack", "compliance"):
+for sub in ("llm", "index", "ingest", "detect", "reftrack", "compliance", "audit"):
     sys.path.append(str(ROOT / "src" / sub))
 
 from clients import GEMINI_MODEL, GROQ_MODEL, LLM_MODE, OLLAMA_MODEL  # noqa: E402
 from build_source_urls import links_for  # noqa: E402
+from trail import TRAIL_FILE, append_run, load_runs, to_csv  # noqa: E402
 
 st.set_page_config(page_title="ClauseGuard", page_icon="📜", layout="wide")
 
@@ -181,6 +182,20 @@ if run and draft.strip():
     except Exception as e:
         st.session_state["review"] = {"error": str(e)}
 
+    # FR-15: append this run — every suggestion offered, the deterministic
+    # results, and the diff vs the previous submission — to the local audit
+    # trail. A trail failure must never break a review.
+    try:
+        st.session_state["audit_last"] = append_run(
+            draft,
+            score=st.session_state.get("score"),
+            terms=st.session_state.get("terms"),
+            refs=st.session_state.get("refs"),
+            review=st.session_state.get("review"),
+        )
+    except Exception as e:
+        st.session_state["audit_error"] = str(e)
+
 
 def report_header():
     """One-glance review report — the four numbers that summarise a run, above
@@ -212,8 +227,9 @@ def report_header():
 
 report_header()
 
-t_conf, t_refs, t_score, t_gloss, t_about = st.tabs(
-    ["⚠️ Conflicts", "🔗 References", "✅ Scorecard", "📖 Glossary", "ℹ️ About"]
+t_conf, t_refs, t_score, t_gloss, t_audit, t_about = st.tabs(
+    ["⚠️ Conflicts", "🔗 References", "✅ Scorecard", "📖 Glossary",
+     "🗂️ Audit", "ℹ️ About"]
 )
 
 
@@ -438,6 +454,67 @@ with t_gloss:
     for i, g in enumerate(rows):
         note = f" — *{g['note']}*" if g.get("note") else ""
         cols[i % 2].markdown(f"**{g['mr']}** · {g['en']}{note}")
+
+with t_audit:
+    if err := st.session_state.pop("audit_error", None):
+        st.warning(f"Last run could not be recorded: {err}")
+    runs = load_runs()
+    if not runs:
+        st.info("No reviews recorded yet. Every **Review draft** click appends "
+                "one record here: the suggestions offered, the deterministic "
+                "results, and a diff of your edits since the previous "
+                "submission (FR-15).")
+    else:
+        a1, a2, a3 = st.columns([1, 1, 2])
+        a1.metric("Recorded runs", len(runs))
+        a2.metric("With edits", sum(1 for r in runs if r.get("human_edit")))
+        with a3:
+            d1, d2 = st.columns(2)
+            d1.download_button("⬇️ JSONL (full)", TRAIL_FILE.read_bytes(),
+                               file_name="audit_trail.jsonl", mime="application/jsonl",
+                               use_container_width=True)
+            d2.download_button("⬇️ CSV (summary)", to_csv(runs),
+                               file_name="audit_trail.csv", mime="text/csv",
+                               use_container_width=True)
+        for rec in reversed(runs):
+            sug = rec.get("ai_suggestions", {})
+            det = rec.get("deterministic", {})
+            n_sug = sum(len(v) for v in sug.values())
+            pct = det.get("compliance_pct")
+            label = (f"{rec['ts']} · {rec.get('source','review')} · "
+                     f"{'—' if pct is None else f'{pct}%'} compliance · "
+                     f"{n_sug} suggestion(s) · draft {rec['draft_sha256'][:10]}")
+            with st.expander(label):
+                if f := det.get("funnel"):
+                    st.caption(f"funnel: {f.get('n_clauses')} clauses → "
+                               f"{f.get('n_pairs')} pairs → "
+                               f"{f.get('n_muril_flagged')} MuRIL flags → "
+                               f"{f.get('n_conflicts')} verified conflicts")
+                for c in sug.get("conflicts", []):
+                    st.markdown(f"🔴 **Conflict vs `{c['gr_code']}`** — {c['reason']}")
+                    if c.get("suggested_fix"):
+                        st.caption(f"suggested fix: {c['suggested_fix']}")
+                for w in sug.get("citation_warnings", []):
+                    if w.get("kind") == "superseded":
+                        st.markdown(f"⚠️ cites **{w.get('cited')}**, superseded by "
+                                    f"`{w.get('superseded_by')}`")
+                    else:
+                        st.markdown(f"🕐 cited GR dated **{w.get('cited_date')}** has "
+                                    f"{w.get('n_newer')} newer same-subject GR(s)")
+                for t in sug.get("terminology", []):
+                    st.markdown(f"📝 [{t.get('kind')}] `{t.get('found')}` → approved "
+                                f"term available")
+                if fails := det.get("failed_checks"):
+                    st.caption(f"failed template checks: {', '.join(fails)}")
+                if edit := rec.get("human_edit"):
+                    st.markdown(f"**Human edits since previous submission** "
+                                f"(+{edit['lines_added']} / −{edit['lines_removed']} lines)")
+                    st.code(edit["diff"] or "(no line changes)", language="diff")
+                else:
+                    st.caption("first recorded version of this draft — no prior "
+                               "submission to diff against")
+    st.caption("Local file only — `data/audit_trail.jsonl` never leaves this "
+               "machine (NFR-2).")
 
 with t_about:
     slide = ROOT / "demo" / "architecture_slide.html"
