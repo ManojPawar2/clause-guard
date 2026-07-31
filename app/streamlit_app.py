@@ -14,12 +14,16 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 ROOT = Path(__file__).resolve().parents[1]
-for sub in ("llm", "index", "ingest", "detect", "reftrack", "compliance", "audit"):
+for sub in ("llm", "index", "ingest", "detect", "reftrack", "compliance",
+            "audit", "export"):
     sys.path.append(str(ROOT / "src" / sub))
 
 from clients import GEMINI_MODEL, GROQ_MODEL, LLM_MODE, OLLAMA_MODEL  # noqa: E402
 from build_source_urls import links_for  # noqa: E402
 from trail import TRAIL_FILE, append_run, load_runs, to_csv  # noqa: E402
+from writer import draft_docx, draft_pdf, report_docx, report_pdf  # noqa: E402
+
+DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 
 st.set_page_config(page_title="ClauseGuard", page_icon="📜", layout="wide")
 
@@ -195,6 +199,33 @@ if run and draft.strip():
         )
     except Exception as e:
         st.session_state["audit_error"] = str(e)
+
+
+if draft.strip():
+    # FR-16: export the draft — and, once a review has run, the review report —
+    # as DOCX (Nirmala UI, Word shapes the Devanagari) or PDF (embedded Noto
+    # fonts with harfbuzz shaping, so Marathi conjuncts render correctly).
+    with st.expander("📤 Export — draft / review report as DOCX · PDF"):
+        e1, e2, e3, e4 = st.columns(4)
+        e1.download_button("📄 Draft · DOCX", draft_docx(draft),
+                           file_name="clauseguard_draft.docx", mime=DOCX_MIME,
+                           use_container_width=True)
+        e2.download_button("📄 Draft · PDF", draft_pdf(draft),
+                           file_name="clauseguard_draft.pdf", mime="application/pdf",
+                           use_container_width=True)
+        if st.session_state.get("score"):
+            kw = dict(score=st.session_state.get("score"),
+                      terms=st.session_state.get("terms"),
+                      refs=st.session_state.get("refs"),
+                      review=st.session_state.get("review"))
+            e3.download_button("📋 Report · DOCX", report_docx(**kw),
+                               file_name="clauseguard_review_report.docx",
+                               mime=DOCX_MIME, use_container_width=True)
+            e4.download_button("📋 Report · PDF", report_pdf(**kw),
+                               file_name="clauseguard_review_report.pdf",
+                               mime="application/pdf", use_container_width=True)
+        else:
+            e3.caption("Run **Review draft** to export the review report too.")
 
 
 def report_header():

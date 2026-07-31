@@ -10,3 +10,6 @@ pyvis
 torch
 transformers
 scikit-learn
+python-docx
+fpdf2
+uharfbuzz
