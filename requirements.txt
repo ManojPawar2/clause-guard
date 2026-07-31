@@ -1,15 +1,23 @@
-requests
+# Pinned to the versions the shipped artifacts were built with:
+# chromadb must match the persisted index schema, sentence-transformers must
+# reproduce the e5-small vectors, transformers must load the MuRIL checkpoint.
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.8.0+cpu ; sys_platform == 'linux'
+torch==2.8.0 ; sys_platform != 'linux'
+chromadb==1.0.20
+sentence-transformers==5.4.1
+transformers==4.57.0
+streamlit==1.51.0
+huggingface_hub>=0.30
+numpy==2.1.3
+pyyaml==6.0.2
+pdfplumber==0.11.9
+python-docx==1.2.0
+fpdf2==2.8.7
+uharfbuzz==0.56.0
+requests==2.32.5
+# corpus-rebuild / fine-tune tooling only (not needed by the running app)
 beautifulsoup4
-pdfplumber
 PyMuPDF
-chromadb
-sentence-transformers
-streamlit
-pyyaml
-pyvis
-torch
-transformers
 scikit-learn
-python-docx
-fpdf2
-uharfbuzz
+pyvis

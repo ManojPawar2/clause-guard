@@ -15,7 +15,7 @@ import streamlit.components.v1 as components
 
 ROOT = Path(__file__).resolve().parents[1]
 for sub in ("llm", "index", "ingest", "detect", "reftrack", "compliance",
-            "audit", "export", "draftgen"):
+            "audit", "export", "draftgen", "deploy"):
     sys.path.append(str(ROOT / "src" / sub))
 
 from clients import GEMINI_MODEL, GROQ_MODEL, LLM_MODE, OLLAMA_MODEL  # noqa: E402
@@ -27,6 +27,19 @@ from generate import SAMPLE, generate as generate_draft  # noqa: E402
 DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 
 st.set_page_config(page_title="ClauseGuard", page_icon="📜", layout="wide")
+
+# Cloud hosts boot from the git repo alone — pull the fine-tuned model, the
+# vector index and the warmed LLM cache from the HF Hub on first boot. Local
+# checkouts already have them on disk, so this is a no-op in development.
+from bootstrap import artifacts_missing, ensure_artifacts  # noqa: E402
+if artifacts_missing():
+    try:
+        with st.spinner("First boot on this host — downloading the fine-tuned "
+                        "model and vector index (~600 MB, one time)…"):
+            ensure_artifacts()
+    except Exception as e:
+        st.warning(f"Artifact download failed — running without the local "
+                   f"model/index: {e}")
 
 MURIL_ON = (os.environ.get("USE_MURIL", "1") != "0"
             and (ROOT / "model" / "muril_gr_conflict_fp16" / "config.json").exists())
