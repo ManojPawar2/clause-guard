@@ -15,13 +15,14 @@ import streamlit.components.v1 as components
 
 ROOT = Path(__file__).resolve().parents[1]
 for sub in ("llm", "index", "ingest", "detect", "reftrack", "compliance",
-            "audit", "export"):
+            "audit", "export", "draftgen"):
     sys.path.append(str(ROOT / "src" / sub))
 
 from clients import GEMINI_MODEL, GROQ_MODEL, LLM_MODE, OLLAMA_MODEL  # noqa: E402
 from build_source_urls import links_for  # noqa: E402
 from trail import TRAIL_FILE, append_run, load_runs, to_csv  # noqa: E402
 from writer import draft_docx, draft_pdf, report_docx, report_pdf  # noqa: E402
+from generate import SAMPLE, generate as generate_draft  # noqa: E402
 
 DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 
@@ -258,9 +259,9 @@ def report_header():
 
 report_header()
 
-t_conf, t_refs, t_score, t_gloss, t_audit, t_about = st.tabs(
+t_conf, t_refs, t_score, t_gloss, t_gen, t_audit, t_about = st.tabs(
     ["⚠️ Conflicts", "🔗 References", "✅ Scorecard", "📖 Glossary",
-     "🗂️ Audit", "ℹ️ About"]
+     "✍️ Generate", "🗂️ Audit", "ℹ️ About"]
 )
 
 
@@ -485,6 +486,94 @@ with t_gloss:
     for i, g in enumerate(rows):
         note = f" — *{g['note']}*" if g.get("note") else ""
         cols[i % 2].markdown(f"**{g['mr']}** · {g['en']}{note}")
+
+with t_gen:
+    ai_where = ("locally via Ollama — the brief never leaves this machine"
+                if LLM_MODE == "ollama" else "via the configured cloud LLMs")
+    st.markdown(
+        f"Drafting assistance (§1.2): fill the header fields, then either write "
+        f"the preamble and clauses yourself or let the AI expand a short brief "
+        f"({ai_where}). The deterministic template guarantees every mandatory "
+        f"Manual-of-Office-Procedure section, so a generated draft always "
+        f"carries the full structure (AC-3) — verified by the scorecard below."
+    )
+    lang = "en" if st.radio("Language", ["English", "मराठी"], horizontal=True,
+                            label_visibility="collapsed") == "English" else "mr"
+    sample = SAMPLE[lang]
+    use_ai = st.toggle("🤖 AI-assist — draft the preamble and clauses from a "
+                       "brief (digit-audited: no number invented or dropped)")
+    with st.form("gen_form"):
+        g1, g2 = st.columns(2)
+        g_subject = g1.text_input("Subject", sample["subject"])
+        g_department = g2.text_input("Department", sample["department"])
+        g_number = g1.text_input("GR number", sample["gr_number"])
+        g_date = g2.date_input("Date")
+        g_refs = st.text_area("Read block — one reference per line",
+                              "\n".join(sample["references"]), height=68)
+        if use_ai:
+            g_brief = st.text_area(
+                "Officer's brief", height=100,
+                placeholder="e.g. sanction a merit scholarship of Rs. 1,500 per "
+                            "month for the top 10% of polytechnic students, "
+                            "paid via MahaDBT, from academic year 2026-27")
+            g_n = st.slider("Operative clauses to draft", 2, 6, 3)
+            g_background, g_clauses = "", ""
+        else:
+            g_brief, g_n = "", 3
+            g_background = st.text_area("Preamble background",
+                                        sample["background"], height=80)
+            g_clauses = st.text_area("Operative clauses — one per line",
+                                     "\n".join(sample["clauses"]), height=130)
+        g3, g4, g5 = st.columns(3)
+        g_head = g3.text_input("Budget head", sample["budget_head"])
+        g_sign = g4.text_input("Signatory", sample["signatory"])
+        g_desig = g5.text_input("Designation", sample["designation"])
+        g_submit = st.form_submit_button("✍️ Generate draft", type="primary",
+                                         use_container_width=True)
+    if g_submit:
+        from scorecard import score
+        from glossary_check import check_terminology
+        fields = {"lang": lang, "subject": g_subject, "department": g_department,
+                  "gr_number": g_number, "date": g_date,
+                  "references": [r for r in g_refs.splitlines() if r.strip()],
+                  "background": g_background,
+                  "clauses": [c for c in g_clauses.splitlines() if c.strip()],
+                  "budget_head": g_head, "signatory": g_sign,
+                  "designation": g_desig}
+        with st.spinner("drafting…"):
+            g_out = generate_draft(fields, use_ai=use_ai, brief=g_brief,
+                                   n_clauses=g_n)
+        st.session_state["generated"] = g_out
+        st.session_state["generated_score"] = score(g_out["draft"])
+        st.session_state["generated_terms"] = check_terminology(g_out["draft"])
+        # a generated draft IS an AI suggestion — it belongs in the trail (FR-15)
+        try:
+            append_run(g_out["draft"], score=st.session_state["generated_score"],
+                       terms=st.session_state["generated_terms"], source="generate")
+        except Exception as e:
+            st.session_state["audit_error"] = str(e)
+    if g_out := st.session_state.get("generated"):
+        if g_out["ai_used"]:
+            st.caption("🤖 Preamble and clauses drafted by the AI layer — "
+                       "digit audit passed against the brief.")
+        elif g_out["ai_error"]:
+            st.warning(f"AI assist unavailable — deterministic scaffold used "
+                       f"instead. ({g_out['ai_error']})")
+        gs = st.session_state.get("generated_score")
+        gt = st.session_state.get("generated_terms")
+        m1, m2, m3, m4 = st.columns(4)
+        m1.metric("Template compliance", f"{gs['pct']}%",
+                  help="AC-3: a generated draft contains all mandatory sections")
+        m2.metric("Terminology flags", gt["n_flags"])
+        m3.download_button("⬇️ DOCX", draft_docx(g_out["draft"]),
+                           file_name="clauseguard_generated_draft.docx",
+                           mime=DOCX_MIME, use_container_width=True)
+        m4.download_button("⬇️ PDF", draft_pdf(g_out["draft"]),
+                           file_name="clauseguard_generated_draft.pdf",
+                           mime="application/pdf", use_container_width=True)
+        st.text_area("Generated draft — paste it into the review box above to "
+                     "run the full conflict/reference review",
+                     g_out["draft"], height=340)
 
 with t_audit:
     if err := st.session_state.pop("audit_error", None):
