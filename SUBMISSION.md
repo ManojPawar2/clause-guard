@@ -7,7 +7,7 @@
 
 ## Pitch (one paragraph)
 
-ClauseGuard reviews a draft Government Resolution against 776 real Maharashtra GRs
+ClauseGuard drafts and reviews Government Resolutions against 776 real Maharashtra GRs
 (11,951 clauses parsed, 11,817 indexed for retrieval; built from the Internet Archive
 while the live portal was down) and
 flags the clause-level conflicts a drafting officer would otherwise miss. Retrieval
@@ -15,9 +15,12 @@ narrows thousands of clauses to ~30 candidates; a fine-tuned MuRIL cross-encoder
 (238M, 130 ms/pair on CPU — no API, no rate limits) screens them to a handful; an LLM
 then only *extracts* the competing values ("50 टक्के" vs "100 टक्के") and deterministic
 code makes the conflict call — every flag ships with an auditable reason. The same app
-links and currency-checks every citation, scores Manual-of-Office-Procedure compliance
-(0%→100% live), and bundles a Marathi↔English legal glossary. It runs fully offline on
-a laptop GPU.
+generates compliant bilingual drafts (deterministic Manual-template scaffold + a
+digit-audited local-LLM layer), links and currency-checks every citation, scores
+Manual-of-Office-Procedure compliance (0%→100% live), bundles a Marathi↔English legal
+glossary, keeps an audit trail of every suggestion and human edit, and exports the
+draft and review report as DOCX/PDF with correctly-shaped Devanagari. It runs fully
+offline on a laptop GPU.
 
 ## What makes it defensible
 
@@ -34,11 +37,12 @@ a laptop GPU.
   pairs). The label-noise finding, provenance chain, and all raw artifacts are
   versioned in the repo.
 
-- **Scoped against the SRS, openly**: 14 of the 16 functional requirements are
-  implemented; the audit trail (FR-15) and PDF/DOCX export (FR-16) are named as
-  deliberate boundaries rather than left looking like oversights, and citation-extraction
-  recall is measured against hand-annotated ground truth instead of against our own
-  extractor's output. See the SRS-coverage section in `README.md`.
+- **Scoped against the SRS, openly**: all 16 functional requirements are implemented —
+  including the audit trail (FR-15), PDF/DOCX export with harfbuzz-shaped Devanagari
+  (FR-16), and §1.2 draft *generation* (AC-3 met as generation: every generated draft
+  scores 100% on the mandatory-section checklist, verified offline in both languages) —
+  and citation-extraction recall is measured against hand-annotated ground truth instead
+  of against our own extractor's output. See the SRS-coverage section in `README.md`.
 
 ## Run it
 

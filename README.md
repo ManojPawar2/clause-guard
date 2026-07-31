@@ -3,7 +3,7 @@
 AI-assisted Government Resolution (GR) drafting for Maharashtra — VJTI AI Hackathon 2026
 ("Shaping Digital Governance", Problem 1: MAHA-GR-ALIGN).
 
-Reviews a draft GR against a corpus of real Maharashtra GRs and provides:
+Drafts and reviews Maharashtra GRs against a corpus of real ones:
 
 1. **Cross-departmental conflict detection** — retrieval narrows candidate clause pairs,
    an LLM (and optionally a fine-tuned MuRIL cross-encoder) screens them, and flagged
@@ -14,6 +14,15 @@ Reviews a draft GR against a corpus of real Maharashtra GRs and provides:
    conventions (header, Read block, preamble, numbered clauses, financial-sanction block,
    budget head, signature formula, code).
 4. **Bilingual terminology** — Marathi ↔ English legal/administrative glossary.
+5. **Drafting assistance** — a deterministic template scaffold guarantees every mandatory
+   section in both languages; an optional AI layer (local Ollama in ollama mode — the
+   brief never leaves the machine) expands an officer's brief into the preamble and
+   clauses, digit-audited so no numeral is invented or dropped.
+6. **Audit trail** — every review and generation appends to a local JSONL: the
+   suggestions offered, the deterministic results, and a unified diff of the officer's
+   edits between submissions.
+7. **Export** — the draft and the review report as DOCX (Nirmala UI) or PDF (embedded
+   Noto fonts with harfbuzz shaping, so Marathi conjuncts render correctly).
 
 ## Corpus note
 
@@ -71,18 +80,21 @@ Evaluation: `EVAL_TABLE.md` · dataset provenance and limitations: `DATASET_CARD
 
 Against the problem statement's 16 functional requirements:
 
-- **Met** — reference parsing + archive verification (FR-1–3); semantic conflict detection
-  reporting similarity score and source-GR links (FR-4–6); bilingual glossary with
-  mismatch flagging and standard-term suggestions (FR-7–9); Manual-of-Office-Procedure
+- **Met — all 16** — reference parsing + archive verification (FR-1–3); semantic conflict
+  detection reporting similarity score and source-GR links (FR-4–6); bilingual glossary
+  with mismatch flagging and standard-term suggestions (FR-7–9); Manual-of-Office-Procedure
   enforcement including the financial-sanction block and budget head (FR-10–12); web
   dashboard accepting upload or paste (FR-13); side-by-side clause comparison with a
-  code-built suggested fix (FR-14).
-- **Deliberately out of this build** — FR-15 (audit trail of AI suggestions and human
-  edits) and FR-16 (PDF/DOCX export). ClauseGuard is a review tool, not a
-  document-management system. Draft *generation* (§1.2) is out of scope for the same
-  reason: it reviews a draft an officer wrote rather than writing GRs. AC-3 is therefore
-  satisfied as verification — the scorecard proves every mandatory section is present —
-  not as generation.
+  code-built suggested fix (FR-14); append-only audit trail of AI suggestions and
+  human-edit diffs with JSONL/CSV download (FR-15); DOCX/PDF export of the draft and the
+  review report, with harfbuzz-shaped Devanagari in the PDF path (FR-16).
+- **Drafting (§1.2)** — the Generate tab writes GRs, not just reviews them: a
+  deterministic Manual-template scaffold plus an optional LLM layer that expands the
+  officer's brief (local-only in ollama mode, per NFR-2) under a digit audit — output
+  that invents or drops any numeral is rejected. AC-3 is met as *generation*: every
+  generated draft carries all mandatory sections, verified inline by the same scorecard
+  (100% in both languages, including offline). Full legal advice and automatic approval
+  remain out of scope, as the SRS itself requires.
 - **Dataset divergence** — §6 names `orgpedia/mahGRs` as the primary dataset; we built
   from the portal itself via the Wayback Machine, §1.3's first-listed source, because the
   live portal returned 503 throughout the window. The cost of that choice is the
@@ -91,7 +103,9 @@ Against the problem statement's 16 functional requirements:
 - **Acceptance criteria** — AC-1 is measured rather than assumed: 100% citation recall on
   clean drafts, 60% on garbled archive PDFs, against a hand-annotated ground truth
   (`EVAL_TABLE.md`, `data/citation_ground_truth.json`). AC-2, AC-4 and AC-5 are
-  demonstrated by the four planted scenarios.
+  demonstrated by the four planted scenarios. AC-3 is asserted by
+  `python src/draftgen/generate.py` (generated drafts score 100% in both languages,
+  offline) and the app-level tests in `tests/`.
 
 ## License
 
