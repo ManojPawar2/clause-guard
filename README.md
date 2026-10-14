@@ -1,4 +1,4 @@
-# ClauseGuard
+## ClauseGuard
 
 AI-assisted Government Resolution (GR) drafting for Maharashtra — VJTI AI Hackathon 2026
 ("Shaping Digital Governance", Problem 1: MAHA-GR-ALIGN).
